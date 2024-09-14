@@ -1,0 +1,62 @@
+# CMake build directories
+build/
+cmake-build-debug/
+cmake-build-release/
+
+# CMake-generated files
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+CTestTestfile.cmake
+
+# Compiled object files
+*.o
+*.obj
+*.lo
+*.la
+*.al
+
+# Compiled dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled static libraries
+*.a
+*.lib
+
+# Executable files
+*.out
+*.exe
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+
+# IDE specific files (optional, if you use specific IDEs)
+# For example, for Visual Studio
+*.vcxproj
+*.vcxproj.filters
+*.suo
+*.user
+
+# For Code::Blocks
+*.cbp
+*.depend
+*.layout
+
+# For Qt Creator
+*.pro.user
+*.qmake.cache
+
+# For Eclipse
+.project
+.cproject
+.settings/
+
+# For CLion
+.idea/
+*.iml
+*.iws
