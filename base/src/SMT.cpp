@@ -1,17 +1,22 @@
 #include "../include/SMT.h"
 #include <algorithm>
 
+SMT::SMT(){
+
+}
+
 
 bool compare_by_compound_key(const SMTNode& a, const SMTNode& b){
     return a.compound_key < b.compound_key;
 }
 
 
-SMT::SMT(std::set<struct SMTNode> leaves){
+SMT::SMT(std::vector<struct SMTNode> leaves){
     this->leaf_num = leaves.size();
 
-    // 将leaves集合中所有叶结点加入tree数组，并根据混合键对元素进行排序
-    std::copy(leaves.begin(), leaves.end(), std::back_inserter(this->tree));
+    // 将leaves中所有叶结点加入tree数组，并根据混合键对元素进行排序
+    // std::copy(leaves.begin(), leaves.end(), std::back_inserter(this->tree));
+    this->tree = leaves;
     std::sort(this->tree.begin(), this->tree.end(), compare_by_compound_key);
 
     // 构造SMT，得到根结点

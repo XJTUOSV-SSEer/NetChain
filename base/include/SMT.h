@@ -64,15 +64,21 @@ public:
     int leaf_num;
     // 根结点在tree数组中的下标
     int root_id;
+
+
+    /*
+        默认构造函数
+    */
+    SMT();
     
     /*
         构造函数
         param:
-            leaves - 一个集合，储存所有叶结点
+            leaves - 一个数组，储存所有叶结点
 
         return:
     */
-    SMT(std::set<struct SMTNode> leaves);
+    SMT(std::vector<struct SMTNode> leaves);
 
 
     /*
