@@ -1,6 +1,7 @@
 #include <iostream>
 #include "../include/Block.h"
 #include <vector>
+#include "../include/SMT.h"
 
 
 int main(){
@@ -17,6 +18,10 @@ int main(){
     Block blk1(1, std::string(32, '\0'), transactions);
     std::cout << blk1.blk_id<<std::endl;
     // std::cout << blk1.pre_hash<<std::endl;
-    std::cout << blk1.h_smt.length()<<std::endl;
-    std::cout << blk1.smt.root_id<<std::endl;
+    // std::cout << blk1.h_smt.length()<<std::endl;
+    // std::cout << blk1.smt.root_id<<std::endl;
+    std::vector<SMTNode> tree = blk1.smt.tree;
+    for(int i=0; i<blk1.smt.leaf_num; i++){
+        std::cout << tree[i].compound_key.first<< "," << tree[i].compound_key.second <<std::endl;
+    }
 }

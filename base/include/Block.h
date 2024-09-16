@@ -6,39 +6,9 @@
 #include <map>
 #include <string>
 #include "SMT.h"
-
-/*
-    每个混合键对应sorted List中的结点
-*/
-struct ListNode{
-    // 点v
-    std::string v;
-    // 权重w
-    int w;
-    // 哈希指针ptr
-    std::string ptr;
-
-    ListNode(std::string v, int w){
-        this->v = v;
-        this->w = w;
-        // 哈希指针默认设置为空, 即32字节全0字符串
-        this->ptr = std::string(32, '\0');
-    }
-};
+#include "Structs.h"
 
 
-
-/*
-    区块中的交易对象
-*/
-struct transaction{
-    std::string u;
-    std::string v;
-    std::string type;
-    int w;
-
-    transaction(std::string u, std::string v, std::string type, int w):u(u), v(v), type(type), w(w){}
-};
 
 
 class Block{

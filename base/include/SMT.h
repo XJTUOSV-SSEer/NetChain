@@ -5,58 +5,31 @@
 #include <string>
 #include <set>
 #include "Crypto_Primitives.h"
+#include "Structs.h"
 #define DIGEST_LENGHT 32
 
 
-// SMT的结点
-struct SMTNode{
-    // 标识是否为叶结点
-    bool isLeaf;
-    // 混合键 <u, type>
-    std::pair<std::string, std::string> compound_key;
-    // 该混合键对应sorted list的长度
-    int l;
-    // 该混合键对应sorted list的头哈希
-    std::string h1;
-    // 左子结点在tree数组中的下标。若不存在，置为-1
-    int lchild;
-    // 右子结点在tree数组中的下标。若不存在，置为-1
-    int rchild;
-    // 结点的哈希, 叶结点的哈希为H(u||type||l||h1)，非叶结点的哈希为H(lhash||rhash)
-    std::string digest;
 
-    // 构造函数，构造一个叶结点
-    SMTNode(std::string u, std::string type, int l, std::string h1){
-        this->isLeaf = true;
-        this->compound_key = std::make_pair(u, type);
-        this->l = l;
-        this->h1 = h1;
-
-        // H(u||type||l||h1)
-        std::string msg = u+type+ std::to_string(l) + h1;
-        this->digest = Crypto_Primitives::SHA256_digest(msg);
-
-        this->lchild = -1;
-        this->rchild = -1;
-    }
-
-    // 构造函数，构造一个非叶结点
-    SMTNode(int lchild, int rchild, std::string lhash, std::string rhash){
-        this->isLeaf = false;
-
-        this->lchild = lchild;
-        this->rchild = rchild;
-        
-        // H(lhash||rhash)
-        this->digest = Crypto_Primitives::SHA256_digest(lhash+rhash);
-    }
-};
 
 
 /*
     使用递归，构造平衡的SMT
 */
 class SMT{
+private:
+    /*
+        给定若干叶结点，生成这些叶结点对应的merkle proof（本质是一棵子树）
+        具体算法：通过递归，判断当前结点的子结点是否on path（在leaves中结点到根结点的路径上）。若某个子结点
+        on path，则当前结点也on path，需要加入子树proof.subtree。
+        param:
+            leaves - 若干叶结点在SMT.tree数组中的下标
+            id - 当前结点在SMT.tree数组中的下标
+            proof - 证明
+        return:
+            若当前结点on path，返回当前结点在proof.subtree数组中的下标；否则返回-1
+    */
+    int merkle_proof(std::set<int>& leaves, int id, SMTProof& proof);
+
 public:
     // 使用数组储存SMT。由于递归的构造方式，最后一个元素必定是树根
     std::vector<struct SMTNode> tree;
@@ -78,7 +51,7 @@ public:
 
         return:
     */
-    SMT(std::vector<struct SMTNode> leaves);
+    SMT(std::vector<struct SMTNode>& leaves);
 
 
     /*
@@ -93,6 +66,22 @@ public:
             当前子树根结点在tree数组中的下标
     */
     int construct_tree(int lb, int ub);
+
+
+    /*
+        证明不存在性
+        param: 
+            com_key_q - 要查询的混合键
+        return:
+            不存在证明
+    */
+    SMTProof prove_Nonexistence(std::pair<std::string, std::string> com_key_q);
+
+
+    /*
+        验证不存在性
+    */
+    bool verify_Nonexistence(SMTProof proof);
 };
 
 
