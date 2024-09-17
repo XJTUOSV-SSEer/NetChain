@@ -42,6 +42,10 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "bitset": "cpp",
+        "ctime": "cpp",
+        "iterator": "cpp",
+        "regex": "cpp"
     }
 }

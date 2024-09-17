@@ -1,6 +1,7 @@
 #include "../include/Query.h"
 #include <vector>
 #include <string>
+#include <map>
 #include "../include/Block.h"
 #include "../include/SMT.h"
 #include "Structs.h"
@@ -9,6 +10,11 @@
 void Query::Search(std::string u_q, std::string type_q, int K, int lb, int ub, std::vector<Block>& chain){
     // 要查询的混合键
     std::pair<std::string, std::string> com_key_q;
+    // 每个区块的查询结果R
+    std::map<int, std::vector<ListNode>> R;
+    // 每个区块中com_key_q的存在/不存在证明
+    std::map<int, SMTProof> VO;
+
     // 遍历查询区间[lb, ub]内的所有区块
     for(int i=lb; i<=ub; i++){
         // 当前区块
@@ -36,13 +42,13 @@ void Query::Search(std::string u_q, std::string type_q, int K, int lb, int ub, s
 
         // 若混合键不存在，生成SMT的不存在证明。
         if(target == -1){
-            
+            SMTProof smtproof = smt.prove_Nonexistence(com_key_q);
         }
 
 
         // 若混合键存在，生成SMT的存在证明，并搜索当前区块的top-K结果
         else{
-
+            
         }
 
     }
