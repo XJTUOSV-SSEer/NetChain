@@ -240,7 +240,7 @@ bool SMT::verify_Nonexistence(SMTProof& proof, std::string h_smt, std::pair<std:
             std::string right_path="*";
             if(get_path(proof.subtree, proof.root_id, right_id, right_path)){
                 // 判断left_path处理后是否为right_path的前缀
-                if(right_path.compare(0, left_path.size(), left_path)){
+                if(right_path.compare(0, left_path.size(), left_path) == 0){
                     // 之后判断right_path的后续部分是否为 "10*"
                     std::string s = right_path.substr(left_path.size());
                     std::regex pattern(R"(^1(0*)$)");

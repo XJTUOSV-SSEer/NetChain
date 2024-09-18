@@ -7,6 +7,7 @@
 #include <string>
 #include <set>
 #include "Crypto_Primitives.h"
+#include <map>
 
 
 
@@ -104,6 +105,18 @@ struct SMTProof{
     std::vector<int> leaves;
     // 根结点在子树中的下标
     int root_id;
+};
+
+
+
+/*
+    打包储存查询结果与验证对象
+*/
+struct Response{
+    // 每个区块的查询结果R
+    std::map<int, std::vector<ListNode>> R;
+    // 每个区块中com_key_q的存在/不存在证明
+    std::map<int, SMTProof> VO;
 };
 
 

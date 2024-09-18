@@ -8,6 +8,8 @@
 #include "Structs.h"
 
 class Query{
+private:
+    static bool compare_by_w(const std::pair<std::string, int>& a, const std::pair<std::string, int>& b);
 public:
     /*
         模拟全节点对区块链进行搜索
@@ -21,9 +23,23 @@ public:
         return:
 
     */
-    static void Search(std::string u_q, std::string type_q, int K, int lb, int ub, std::vector<Block>& chain);
+    static Response Search(std::string u_q, std::string type_q, int K, int lb, int ub, std::vector<Block>& chain);
 
-    static void Verify();
+
+    /*
+        模拟轻节点对查询结果验证，包括正确性与完整性两部分验证
+        param:
+            u_q
+            type_q
+            response - 全节点返回的查询结果
+            K -
+            lb,ub - 查询的区块号的区间：[lb,ub]
+            chain - 区块链的引用
+        return:
+            全局top-K结果，根据权重w排序。数组中的元素为二元组<v,w>
+    */
+    static std::vector<std::pair<std::string, int>> Verify(std::string u_q, std::string type_q, 
+                            Response& response, int K, int lb, int ub, std::vector<Block>& chain);
 };
 
 

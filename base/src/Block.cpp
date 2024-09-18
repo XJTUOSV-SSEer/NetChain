@@ -4,6 +4,7 @@
 #include<map>
 #include<algorithm>
 #include "../include/Crypto_Primitives.h"
+#include <iostream>
 
 
 // 用于对list根据权重进行降序排序
@@ -79,4 +80,35 @@ Block::Block(int blk_id, std::string pre_hash, std::vector<struct transaction>& 
     // 构造SMT，并设置块头中的H_SMT
     smt = SMT(leaves);
     h_smt = smt.tree[smt.root_id].digest;
+}
+
+
+
+
+
+
+std::vector<Block> Block::construct_chain(std::vector<transaction>& transactions, int max_transactions){
+    std::vector<Block> blockchain;
+    // 当前批次的交易
+    std::vector<transaction> batch;
+    for(int i=0; i<transactions.size(); i += max_transactions){
+        // 确定本区块的交易个数num_tx
+        int num_tx;
+        if(i+max_transactions > transactions.size()){
+            num_tx = transactions.size() - i;
+            std::vector<transaction> tmp(transactions.begin()+i, transactions.end());
+            batch = tmp;
+        }
+        else{
+            num_tx = max_transactions;
+            std::vector<transaction> tmp(transactions.begin()+i, transactions.begin()+i+num_tx);
+            batch = tmp;
+        }
+
+        // 出块
+        Block blk(int(i/max_transactions), std::string(32, '\0'), batch);
+        blockchain.push_back(blk);
+    }
+
+    return blockchain;
 }
