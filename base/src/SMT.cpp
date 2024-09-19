@@ -143,8 +143,8 @@ SMTProof SMT::prove_Nonexistence(std::pair<std::string, std::string> com_key_q){
                     adj_leaves.insert(mid+1);
                     break;
                 }
-            }
-            lid = mid+1;
+                lid = mid+1;
+            }            
         }
     }
 

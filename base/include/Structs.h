@@ -122,4 +122,14 @@ struct Response{
 
 
 
+
+/*
+    用于对原始图数据进行shuffle，使得局部有序
+*/
+struct segment{
+    // <u,v> pair
+    std::vector<std::pair<int, int>> v;
+};
+
+
 #endif
