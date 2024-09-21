@@ -26,6 +26,39 @@ public:
 
     // 根结点在tree中的下标
     int root_id;
+
+    /*
+        更新某个混合键对应的latest_blk_id
+        若混合键对应的路径不存在，则创建路径
+        param:
+            com_key - 更新的混合键
+            blk_id - 更新后，该混合键最近记录所在的区块
+    */
+    void update(std::pair<std::string, std::string> com_key, int blk_id);
+
+
+    /*
+        查询混合键最近记录所在的区块号
+        param:
+            com_key - 混合键
+        return:
+            混合键最近记录所在区块号
+    */
+    int search(std::pair<std::string, std::string> com_key);
+
+
+
+    /*
+        对给定的混合键，找到对应叶结点并生成merkle proof
+    */
+    MPTProof proveExistence(std::pair<std::string, std::string> com_key);
+
+
+    /*
+        构造函数，初始化一个根结点
+    */
+    MPT();
+
 };
 
 

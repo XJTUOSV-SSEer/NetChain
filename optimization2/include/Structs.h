@@ -65,16 +65,26 @@ struct SMTNode{
 struct MPTNode{
     // 标识是否为叶结点
     bool isLeaf;
-    // 储存指向各个子结点的指针(即子结点在tree数组中的下标)。在本文中，有11个子结点代表"0"-"9", type。整个type作为单独的
+    // 当是叶结点时，储存的该混合键最新记录所在区块号
+    int latest_blk_id;
+
+    // 储存指向各个子结点的指针(即子结点在tree数组中的下标)。在本文中，有13个子结点代表"0"-"9", type。整个type作为单独的
     // 路径元素
     std::vector<int> ptr_vec;
     // 储存各个子结点的哈希
     std::vector<std::string> hash_vec;
 
     MPTNode(){
-        // 将两个数组初始化为size为11
-        this->ptr_vec = std::vector<int>(11);
-        this->hash_vec = std::vector<std::string>(11);
+        this->isLeaf = false;
+        // 将两个数组初始化为size为13
+        this->ptr_vec = std::vector<int>(13);
+        this->hash_vec = std::vector<std::string>(13);
+        for(int i = 0; i<this->ptr_vec.size(); i++){
+            this->ptr_vec[i] = -1;
+        }
+        for(int i=0; i<this->hash_vec.size(); i++){
+            this->hash_vec[i] = std::string(32, '\0');
+        }
     }
 };
 
@@ -125,6 +135,20 @@ struct SMTProof{
     std::vector<int> leaves;
     // 根结点在子树中的下标
     int root_id;
+};
+
+
+
+/*
+    MPT中元素的存在证明
+*/
+struct MPTProof{
+    // 储存merkle证明的子树
+    std::vector<MPTNode> subtree;
+    // 根结点在子树中的下标
+    int root_id;
+    // 被验证的混合键对应叶结点在子树中的下标
+    int leaf_id;
 };
 
 
