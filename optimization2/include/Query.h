@@ -6,6 +6,7 @@
 #include <vector>
 #include "Block.h"
 #include "Structs.h"
+#include "MPT.h"
 
 class Query{
 private:
@@ -21,10 +22,12 @@ public:
             lb - 查询区间的下界（区块号）
             ub - 查询区间的上界
             chain - 区块链的引用
+            mpt - 全局的MPT
         return:
 
     */
-    static Response Search(std::string u_q, std::string type_q, int K, int lb, int ub, std::vector<Block>& chain);
+    static Response Search(std::string u_q, std::string type_q, int K, int lb, int ub, std::vector<Block>& chain, 
+                            MPT& mpt);
 
 
     /*

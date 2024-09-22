@@ -1,5 +1,6 @@
 #include "../include/MPT.h"
 #include <iostream>
+#include <stack>
 
 
 int MPT::get_order(std::string s){
@@ -28,7 +29,7 @@ int MPT::get_order(std::string s){
 
 
 
-void MPT::update(std::pair<std::string, std::string> com_key, int blk_id){
+std::string MPT::update(std::pair<std::string, std::string> com_key, int blk_id){
     std::string u = com_key.first;
     std::string type = com_key.second;
 
@@ -41,8 +42,13 @@ void MPT::update(std::pair<std::string, std::string> com_key, int blk_id){
 
 
     // 按照路径寻找叶结点，若路径上某结点不存在，生成对应的新的结点加入MPT
+    // 将路径上经过的所有结点的引用压入栈中
+    std::stack<MPTNode&> st;
     int current_id = this->root_id;           // 当前结点在tree数组中的下标
     for(int i=0; i<path.size(); i++){
+        // 压栈
+        st.push(this->tree[current_id]);
+
         // order为子结点中的顺序
         int order = path[i];
         // 若路径上该结点为空，新建结点
@@ -62,6 +68,24 @@ void MPT::update(std::pair<std::string, std::string> com_key, int blk_id){
     // 更新叶结点中的latest_blk_id
     this->tree[current_id].isLeaf = true;
     this->tree[current_id].latest_blk_id = blk_id;
+    st.push(this->tree[current_id]);
+
+
+    // 回代，更新路径上结点的哈希值
+    // 使用栈完成
+    MPTNode& node = st.top();
+    std::string child_hash = node.get_hash();
+    st.pop();
+    for(int i = path.size()-1; i>=0; i--){
+        int order = path[i];
+        node = st.top();
+        node.hash_vec[order] = child_hash;
+        child_hash = node.get_hash();
+        st.pop();
+    }
+
+    // 返回最新的MPT的根哈希
+    return child_hash;
 }
 
 
@@ -77,11 +101,11 @@ int MPT::search(std::pair<std::string, std::string> com_key){
     }
     path.push_back(get_order(type));
 
-    // 按照路径寻找叶结点。若某结点不存在，报错并返回-1
+    // 按照路径寻找叶结点。若某结点不存在，返回-1
     int current_id = this->root_id;           // 当前结点在tree数组中的下标
     for(int order: path){
         if(this->tree[current_id].ptr_vec[order] == -1){
-            std::cout << "Compound key is not in MPT" <<std::endl;
+            // std::cout << "Compound key is not in MPT" <<std::endl;
             return -1;
         }
         
@@ -98,6 +122,8 @@ int MPT::search(std::pair<std::string, std::string> com_key){
 MPTProof MPT::proveExistence(std::pair<std::string, std::string> com_key){
     std::string u = com_key.first;
     std::string type = com_key.second;
+    MPTProof proof;
+    proof.root_id = 0;
 
     // 根据u和type确定混合键在MPT中的路径
     std::vector<int> path;          // 混合键在MPT中的路径
@@ -106,21 +132,92 @@ MPTProof MPT::proveExistence(std::pair<std::string, std::string> com_key){
     }
     path.push_back(get_order(type));
 
-    // 按照路径寻找叶结点，且一边找一边将路径上的结点加入proof。若某结点不存在，报错并返回-1
+    // 按照路径寻找叶结点，一边找一边将路径上的结点加入proof。若某结点不存在，报错并返回-1
     int current_id = this->root_id;           // 当前结点在tree数组中的下标
     for(int order: path){
         if(this->tree[current_id].ptr_vec[order] == -1){
             std::cout << "Compound key is not in MPT" <<std::endl;
             return MPTProof();
         }
+
+        // 复制当前结点并处理后加入proof
+        MPTNode node;
+        node.ptr_vec[order] = proof.subtree.size()+1;
+        node.hash_vec = this->tree[current_id].hash_vec;
+        node.hash_vec[order] = std::string(32, '\0');
+        
+        proof.subtree.push_back(node);
         
         // 找到子结点
         current_id = this->tree[current_id].ptr_vec[order];
     }
+
+    // 将叶结点加入proof
+    MPTNode node = this->tree[current_id];
+    proof.subtree.push_back(node);
+    proof.leaf_id = proof.subtree.size()-1;
+
+    return proof;
 }
 
 
 
+bool MPT::verifyExistence(std::pair<std::string, std::string> com_key, int latest_blk, MPTProof proof, std::string h_mpt){
+    // 几个检查点：
+    // proof中叶结点的latest_blk_id等于服务器宣称的latest_blk
+    // proof中从root到leaf的路径与com_key正确的路径相同
+    // 根哈希相同
+
+    if(proof.subtree[proof.leaf_id].latest_blk_id != latest_blk){
+        std::cout << "latest block id is wrong" <<std::endl;
+        return false;
+    }
+
+    // 混合键的路径
+    std::string u = com_key.first;
+    std::string type = com_key.second;
+    std::vector<int> path;          // 混合键在MPT中的路径
+    for(char ch: u){
+        path.push_back(get_order(std::string(1, ch)));
+    }
+    path.push_back(get_order(type));
+
+
+    // 使用栈计算proof中子树的根哈希
+    std::stack<MPTNode&> st;
+    int current_id = proof.root_id;           // 当前结点在tree数组中的下标
+    for(int order:path){
+        st.push(proof.subtree[current_id]);
+        if(proof.subtree[current_id].ptr_vec[order] == -1){
+            std::cout << "the proof not belong to compound key" <<std::endl;
+            return false;
+        }
+        
+        // 找到子结点
+        current_id = this->tree[current_id].ptr_vec[order];
+    }
+    st.push(proof.subtree[current_id]);
+
+    // 使用栈计算子树的根哈希
+    MPTNode& node = st.top();
+    std::string child_hash = node.get_hash();
+    st.pop();
+    for(int i = path.size()-1; i>=0; i--){
+        int order = path[i];
+        node = st.top();
+        node.hash_vec[order] = child_hash;
+        child_hash = node.get_hash();
+        st.pop();
+    }
+
+    // 判断根哈希是否相等
+    if(child_hash != h_mpt){
+        std::cout << "root hash of proof is wrong" <<std::endl;
+        return false;
+    }
+
+    return true;
+}
 
 
 

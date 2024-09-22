@@ -33,12 +33,14 @@ public:
         param:
             com_key - 更新的混合键
             blk_id - 更新后，该混合键最近记录所在的区块
+        return:
+            最新的MPT根哈希
     */
-    void update(std::pair<std::string, std::string> com_key, int blk_id);
+    std::string update(std::pair<std::string, std::string> com_key, int blk_id);
 
 
     /*
-        查询混合键最近记录所在的区块号
+        查询混合键最近记录所在的区块号。若混合键尚不存在，返回-1
         param:
             com_key - 混合键
         return:
@@ -52,6 +54,18 @@ public:
         对给定的混合键，找到对应叶结点并生成merkle proof
     */
     MPTProof proveExistence(std::pair<std::string, std::string> com_key);
+
+
+
+    /*
+        验证MPT proof
+        param:
+            com_key - 要验证的混合键
+            latest_blk - 服务器宣称的该混合键对应的latest_blk_id
+            proof
+            h_mpt - 块头中保存的最新MPT的根哈希
+    */
+    bool verifyExistence(std::pair<std::string, std::string> com_key, int latest_blk, MPTProof proof, std::string h_mpt);
 
 
     /*

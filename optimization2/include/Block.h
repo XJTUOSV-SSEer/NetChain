@@ -7,6 +7,7 @@
 #include <string>
 #include "SMT.h"
 #include "Structs.h"
+#include "MPT.h"
 
 
 
@@ -23,6 +24,8 @@ public:
     std::string pre_hash;
     // H_SMT
     std::string h_smt;
+    // H_MPT
+    std::string h_mpt;
 
     // block body
     // 区块中所有交易对象
@@ -37,8 +40,10 @@ public:
 
     /*
         构造函数，构造一个新的区块
+        param:
+            mpt - 全局状态树
     */
-    Block(int blk_id, std::string pre_hash, std::vector<struct transaction>& transactions);
+    Block(int blk_id, std::string pre_hash, std::vector<struct transaction>& transactions, MPT& mpt);
 
 
 

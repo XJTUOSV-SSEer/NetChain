@@ -21,6 +21,8 @@ struct SMTNode{
     int l;
     // 该混合键对应sorted list的头哈希
     std::string h1;
+    // 插入该块之前，该混合键最新记录所在的区块
+    int id_pre;
     // 左子结点在tree数组中的下标。若不存在，置为-1
     int lchild;
     std::string lhash;
@@ -31,14 +33,15 @@ struct SMTNode{
     std::string digest;
 
     // 构造函数，构造一个叶结点
-    SMTNode(std::string u, std::string type, int l, std::string h1){
+    SMTNode(std::string u, std::string type, int l, std::string h1, int id_pre){
         this->isLeaf = true;
         this->compound_key = std::make_pair(u, type);
         this->l = l;
         this->h1 = h1;
+        this->id_pre = id_pre;
 
-        // H(u||type||l||h1)
-        std::string msg = u+type+ std::to_string(l) + h1;
+        // H(u||type||l||h1||id_pre)
+        std::string msg = u+type+ std::to_string(l) + h1 + std::to_string(id_pre);
         this->digest = Crypto_Primitives::SHA256_digest(msg);
 
         this->lchild = -1;
@@ -85,6 +88,22 @@ struct MPTNode{
         for(int i=0; i<this->hash_vec.size(); i++){
             this->hash_vec[i] = std::string(32, '\0');
         }
+    }
+
+
+    /*
+        计算结点的哈希
+    */
+    std::string get_hash(){
+        std::string msg = "";
+        if(this->isLeaf){
+            msg += std::to_string(latest_blk_id);
+        }
+        for(int i=0; i<this->hash_vec.size(); i++){
+            msg += this->hash_vec[i];
+        }
+
+        return Crypto_Primitives::SHA256_digest(msg);
     }
 };
 
@@ -159,8 +178,12 @@ struct MPTProof{
 struct Response{
     // 每个区块的查询结果R
     std::map<int, std::vector<ListNode>> R;
-    // 每个区块中com_key_q的存在/不存在证明
+    // 每个区块中com_key_q的存在证明
     std::map<int, SMTProof> VO;
+    // id_0，包含com_key_q且大于ub的第一个区块
+    int id_0;
+    // 当com_key_q的最新记录在[lb,ub]内时或小于lb时，根据MPT为com_key_q生成的新鲜性证明
+    MPTProof VO2;
 };
 
 

@@ -9,25 +9,38 @@
 #include <iostream>
 
 
-Response Query::Search(std::string u_q, std::string type_q, int K, int lb, int ub, std::vector<Block>& chain){
+Response Query::Search(std::string u_q, std::string type_q, int K, int lb, int ub, std::vector<Block>& chain, 
+                        MPT& mpt){
     // 要查询的混合键
     std::pair<std::string, std::string> com_key_q = std::make_pair(u_q, type_q);
     // 每个区块的查询结果R
     std::map<int, std::vector<ListNode>> R;
-    // 每个区块中com_key_q的存在/不存在证明
+    // 每个区块中com_key_q的存在证明
     std::map<int, SMTProof> VO;
+    // 返回的结果+证明
+    Response response;
 
-    // 第一遍scan，对不包含查询的混合键的块，生成不存在证明；否则生成存在证明
-    std::vector<int> global_weights;             // 储存全局所有候选结果中的权重
-    std::set<int> candidate_blk_ids;             // 储存所有包含被查询的混合键的block id
-    for(int i=lb; i<=ub; i++){
-        // 当前区块
-        Block& blk = chain[i];
 
-        // 提取SMT，判断是否包括混合键
+    // 从MPT中找到com_key_q对应的latest block id
+    int id_0 = mpt.search(com_key_q);
+    int id = id_0;
+
+    // 若最近的记录所在区块号小于lb，返回只有id_0和VO2的response
+    if(id<lb){
+        // 生成MPT的存在性证明
+        response.VO2 = mpt.proveExistence(com_key_q);
+        response.id_0 = id_0;
+        return response;
+    }
+
+    // 找到恰好在ub范围外且包含com_key_q的区块，并储存在id_0中
+    while(id > ub){
+        // 取出区块号为id的区块，并从SMT中找出com_key_q对应的叶结点，从中提取出id_pre
+        Block& blk = chain[id];
+        
         SMT& smt = blk.smt;
         std::vector<SMTNode>& tree = smt.tree;
-        // 二分判断是否包含混合键。具体地，对SMT中的叶结点中的混合键进行二分搜索
+        // 二分搜索得到键在叶结点中的位置
         int lid = 0, rid = smt.leaf_num-1;          // lid, rid分别为二分搜索的左右边界
         int target = -1;                             // match的结点在tree数组中的下标
         while(rid >= lid){
@@ -44,29 +57,78 @@ Response Query::Search(std::string u_q, std::string type_q, int K, int lb, int u
             }
         }
 
-        // 若混合键不存在，生成SMT的不存在证明。
-        if(target == -1){
-            SMTProof smtproof = smt.prove_Nonexistence(com_key_q);
-            VO[i] = smtproof;
+        // 访问目标叶结点
+        SMTNode& smtnode = tree[target];
+        int id_pre = smtnode.id_pre;
+
+        // 判断id_pre是否在[lb, ub]内
+        if(id_pre>=lb && id_pre<=ub){
+            id_0 = id;
+            response.VO[id] = smt.prove_Existence(target);
+        }
+        // 特殊情况，id>ub, id_pre<lb。此时仍然对id中的SMT做存在证明，并直接返回
+        else if(id_pre<lb){
+            response.VO[id] = smt.prove_Existence(target);
+            response.id_0 = id;
+            return response;
         }
 
+        // 更新id
+        id = id_pre;
+    }
 
-        // 若混合键存在，生成SMT的存在证明，并搜索当前区块的top-K结果
-        else{
-            SMTProof smtproof = smt.prove_Existence(target);
-            VO[i] = smtproof;
 
-            candidate_blk_ids.insert(i);
+    // 若id_0在[lb,ub]内，说明混合键对应最新的值在查询区间中，需要根据MPT证明id_0储存了混合键最新的记录
+    if(id_0>=lb && id_0<=ub){
+        response.VO2 = mpt.proveExistence(com_key_q);
+    }
 
-            // 当前区块中对应于被查询的混合键的List
-            std::vector<ListNode>& list = blk.Lists[com_key_q];
 
-            // 将list中所有元素的w权重加入global_weights数组
-            for(int j=0; j<list.size(); j++){
-                global_weights.push_back(list[j].w);
+
+
+
+    // 第一遍scan，为包含com_key_q的块生成存在证明
+    std::vector<int> global_weights;             // 储存全局所有候选结果中的权重
+    std::set<int> candidate_blk_ids;             // 储存所有包含被查询的混合键的block id
+
+    while(id>=lb && id<=ub){
+        // 当前区块
+        Block& blk = chain[id];
+        SMT& smt = blk.smt;
+        std::vector<SMTNode>& tree = smt.tree;
+
+        // 二分搜索得到键在叶结点中的位置
+        int lid = 0, rid = smt.leaf_num-1;          // lid, rid分别为二分搜索的左右边界
+        int target = -1;                             // match的结点在tree数组中的下标
+        while(rid >= lid){
+            int mid = int((lid+rid)/2);             // mid为当前二分搜索区间的中间点
+            if(tree[mid].compound_key == com_key_q){
+                target = mid;
+                break;
+            }
+            else if(com_key_q > tree[mid].compound_key){
+                lid = mid+1;
+            }
+            else{
+                rid = mid-1;
             }
         }
+
+        // 生成SMT的存在证明，并搜索当前区块的top-K结果
+        VO[id] = smt.prove_Existence(target);
+        candidate_blk_ids.insert(id);
+
+        // 将list中所有元素的w权重加入global_weights数组
+        // 当前区块中对应于被查询的混合键的List
+        std::vector<ListNode>& list = blk.Lists[com_key_q];
+        for(int j=0; j<list.size(); j++){
+            global_weights.push_back(list[j].w);
+        }
+
+        // 更新id为id_pre
+        id = tree[target].id_pre;
     }
+
 
 
     // 计算全局的top-K的权重w
@@ -118,9 +180,9 @@ Response Query::Search(std::string u_q, std::string type_q, int K, int lb, int u
 
 
     // 返回结果
-    Response response;
     response.R = R;
     response.VO = VO;
+    response.id_0 = id_0;
     return response;
 }
 
