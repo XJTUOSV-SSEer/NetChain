@@ -64,7 +64,7 @@ Response Query::Search(std::string u_q, std::string type_q, int K, int lb, int u
         // 判断id_pre是否在[lb, ub]内
         if(id_pre>=lb && id_pre<=ub){
             id_0 = id;
-            response.VO[id] = smt.prove_Existence(target);
+            VO[id] = smt.prove_Existence(target);
         }
         // 特殊情况，id>ub, id_pre<lb。此时仍然对id中的SMT做存在证明，并直接返回
         else if(id_pre<lb){
@@ -195,6 +195,8 @@ std::vector<std::pair<std::string, int>> Query::Verify(std::string u_q, std::str
 
     std::map<int, SMTProof>& VO = response.VO;
     std::map<int, std::vector<ListNode>>& R = response.R;
+    MPTProof& VO2 = response.VO2;
+    int id_0 = response.id_0;
 
     // 最终得到的结果
     std::vector<std::pair<std::string, int>> final_result;
@@ -219,91 +221,123 @@ std::vector<std::pair<std::string, int>> Query::Verify(std::string u_q, std::str
     top_k_w = tmp;
 
 
+    int id;         // 记录包含com_key_q的区块中最大的区块号
 
-    /* ----------------------------- 遍历所有区块 ----------------------*/
-    for(int i = lb; i<=ub; i++){
+    // 对返回的id_0进行验证，确保没有包含com_key_q的区块被遗漏
+    // id_0大于ub，取出id_0对应的SMT证明，从叶结点中取出id_pre判断是否在[lb,ub]内，最后验证merkle proof
+    if(id_0 > ub){
+        SMTProof& smtproof = VO[id_0];
+        int id_pre = smtproof.subtree[smtproof.leaves[0]].id_pre;
+        if(id_pre>ub){
+            std::cout << "id_0 is wrong" <<std::endl;
+            return std::vector<std::pair<std::string, int>>();
+        }
+        else if(id_pre<lb){
+            return std::vector<std::pair<std::string, int>>();
+        }
+
+        // SMT的merle proof
+        if(!SMT::verify_Existence(smtproof, chain[id_0].h_smt, com_key_q)){
+            std::cout << "SMT verification failed" <<std::endl;
+            return std::vector<std::pair<std::string, int>>();
+        }
+
+        id = id_pre;
+    }
+
+    // id_0在[lb, ub]内，根据MPT验证混合键最新记录确实是在id_0中
+    else if(id_0>=lb && id_0<=ub){
+        if(!MPT::verifyExistence(com_key_q, id_0, VO2, chain[chain.size()-1].h_mpt)){
+            std::cout << "MPT verification failed" <<std::endl;
+            return std::vector<std::pair<std::string, int>>();
+        }
+        id = id_0;
+    }
+
+    // id_0小于ub，根据MPT验证混合键最新记录确实是在id_0中
+    else{
+        if(!MPT::verifyExistence(com_key_q, id_0, VO2, chain[chain.size()-1].h_mpt)){
+            std::cout << "MPT verification failed" <<std::endl;
+        }
+        return std::vector<std::pair<std::string, int>>();
+    }
+
+
+
+    /* ----------------------------- 找到所有包含com_key_q的区块 ----------------------*/
+    while(id>=lb && id<=ub){
         // 判断VO是否存在
-        if(VO.find(i) == VO.end()){
+        if(VO.find(id) == VO.end()){
             std::cout << "The VO is missed out"<< std::endl;
             return std::vector<std::pair<std::string, int>>();
         }
 
-        // 验证SMT的存在/不存在证明
+        // 根据SMT验证叶结点的正确性
         // 从块头取出H_SMT
-        std::string h_smt = chain[i].h_smt;
-
-        // 当前区块不包含查询的混合键，验证不存在性
-        if(R.find(i) == R.end()){
-            if(!SMT::verify_Nonexistence(VO[i], h_smt, com_key_q)){
-                std::cout << "Non-existence Verification failed" << std::endl;
-                return std::vector<std::pair<std::string, int>>();
-            }
-
-            // 通过不存在性验证，跳过本轮
-            continue;
+        std::string h_smt = chain[id].h_smt;
+        if(!SMT::verify_Existence(VO[id], h_smt, com_key_q)){
+            std::cout << "Existence Verification failed" << std::endl;
+            return std::vector<std::pair<std::string, int>>();
         }
 
-        // 当前区块包含查询的混合键，验证存在性
-        else{
-            if(!SMT::verify_Existence(VO[i], h_smt, com_key_q)){
-                std::cout << "Existence Verification failed" << std::endl;
+        // 从叶结点中提取出list的信息：h1
+        std::string h1 = VO[id].subtree[VO[id].leaves[0]].h1;
+
+        // 检查list
+        std::vector<ListNode>& list = R[id];
+        std::string ptr_pre = h1;
+        for(int j=0; j<list.size(); j++){
+
+            // 对list中每个结点，提取出v,w,ptr
+            ListNode& ln = list[j];
+            std::string v = ln.v;
+            int w = ln.w;
+            std::string p = ln.ptr;
+
+            // 计算当前结点的哈希，并与ptr_pre对比
+            std::string h = Crypto_Primitives::SHA256_digest(v+std::to_string(w)+p);
+            if(ptr_pre != h){
+                std::cout << "hash pointer verification failed" <<std::endl;
                 return std::vector<std::pair<std::string, int>>();
             }
-
-            // 通过存在性验证，检查当前区块返回的list
-            // 从VO中提取出list的信息：l, h1
-            int l = VO[i].subtree[VO[i].leaves[0]].l;
-            std::string h1 = VO[i].subtree[VO[i].leaves[0]].h1;
-
-            std::vector<ListNode>& list = R[i];
-            std::string ptr_pre = h1;
-            for(int j=0; j<list.size(); j++){
-
-                // 对list中每个结点，提取出v,w,ptr
-                ListNode& ln = list[j];
-                std::string v = ln.v;
-                int w = ln.w;
-                std::string p = ln.ptr;
-
-                // 计算当前结点的哈希，并与ptr_pre对比
-                std::string h = Crypto_Primitives::SHA256_digest(v+std::to_string(w)+p);
-                if(ptr_pre != h){
-                    std::cout << "hash pointer verification failed" <<std::endl;
-                    return std::vector<std::pair<std::string, int>>();
-                }
-                ptr_pre = p;
+            ptr_pre = p;
 
 
-                // 判断下标j是否符合要求。这里有一个值得注意的问题：若多个list中都包含相同的权重w，但是部分是作为
-                // 结果，部分是作为边界，则验证时会造成歧义和错误。因此，之前规定SP按照块的id号顺序生成相应结果与
-                // 证明，保证前部分重复的w作为结果，后部分重复的w作为边界，且验证时也按照区块号升序的顺序来验证，
-                // 保证正确性
+            // 判断下标j是否符合要求。这里有一个值得注意的问题：若多个list中都包含相同的权重w，但是部分是作为
+            // 结果，部分是作为边界，则验证时会造成歧义和错误。因此，之前规定SP按照块的id号顺序生成相应结果与
+            // 证明，保证前部分重复的w作为结果，后部分重复的w作为边界，且验证时也按照区块号升序的顺序来验证，
+            // 保证正确性
 
-                // j不是list最后一个元素，且在全局top-k中
-                if(j<list.size()-1 && std::find(tmp.begin(), tmp.end(), list[j].w)!=tmp.end()){
-                    final_result.push_back(std::make_pair(v, w));
-                    // 为了应对重复的w，需要将这个元素从top_k_w中删除
-                    tmp.erase(std::find(tmp.begin(), tmp.end(), list[j].w));
-                }
-                // j是最后一个元素，且不在全局top-K中
-                else if(j==list.size()-1 && std::find(tmp.begin(), tmp.end(), list[j].w)==tmp.end()) {
+            // j不是list最后一个元素，且在全局top-k中
+            if(j<list.size()-1 && std::find(tmp.begin(), tmp.end(), list[j].w)!=tmp.end()){
+                final_result.push_back(std::make_pair(v, w));
+                // 为了应对重复的w，需要将这个元素从top_k_w中删除
+                tmp.erase(std::find(tmp.begin(), tmp.end(), list[j].w));
+            }
+            // j是最后一个元素，且不在全局top-K中
+            else if(j==list.size()-1 && std::find(tmp.begin(), tmp.end(), list[j].w)==tmp.end()) {
 
-                }
-                // j是最后一个元素，且在全局top-K中，且该结点哈希指针为空
-                else if(j==list.size()-1 && std::find(tmp.begin(), tmp.end(), list[j].w)!=tmp.end() 
-                        && list[j].ptr == std::string(32, '\0')){
-                    final_result.push_back(std::make_pair(v, w));
-                    tmp.erase(std::find(tmp.begin(), tmp.end(), list[j].w));
-                }
-                // 其他情况都为错误
-                else{
-                    std::cout << "Verification for R list failed" <<std::endl;
-                    return std::vector<std::pair<std::string, int>>();
-                }
+            }
+            // j是最后一个元素，且在全局top-K中，且该结点哈希指针为空
+            else if(j==list.size()-1 && std::find(tmp.begin(), tmp.end(), list[j].w)!=tmp.end() 
+                    && list[j].ptr == std::string(32, '\0')){
+                final_result.push_back(std::make_pair(v, w));
+                tmp.erase(std::find(tmp.begin(), tmp.end(), list[j].w));
+            }
+            // 其他情况都为错误
+            else{
+                std::cout << "Verification for R list failed" <<std::endl;
+                return std::vector<std::pair<std::string, int>>();
             }
         }
+    // 更新id，从当前块的叶结点中找到id_pre
+        int id_pre = VO[id].subtree[VO[id].leaves[0]].id_pre;
+        id = id_pre;
     }
 
+
+    // 将结果按照权重排序
+    std::sort(final_result.begin(), final_result.end(), compare_by_w);
     return final_result;
 }
 

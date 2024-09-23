@@ -65,7 +65,7 @@ public:
             proof
             h_mpt - 块头中保存的最新MPT的根哈希
     */
-    bool verifyExistence(std::pair<std::string, std::string> com_key, int latest_blk, MPTProof proof, std::string h_mpt);
+    static bool verifyExistence(std::pair<std::string, std::string> com_key, int latest_blk, MPTProof proof, std::string h_mpt);
 
 
     /*

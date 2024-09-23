@@ -25,36 +25,39 @@
 //     /*-------------------------- 数据集 -------------------------------------*/
 //     std::vector<transaction> transactions;
     
-//     transactions.push_back(transaction("a", "c", "friend", 18));
-//     transactions.push_back(transaction("a", "b", "friend", 10));
-//     transactions.push_back(transaction("a", "d", "friend", 10));
-//     transactions.push_back(transaction("c", "d", "friend", 20));
-//     transactions.push_back(transaction("c", "e", "friend", 9));
-//     transactions.push_back(transaction("a", "b", "family", 30));
-//     transactions.push_back(transaction("a", "e", "family", 20));
-//     transactions.push_back(transaction("b", "e", "family", 40));
-//     transactions.push_back(transaction("a", "e", "colleague", 3));
-//     transactions.push_back(transaction("e", "b", "colleague", 10));
-//     transactions.push_back(transaction("b", "d", "colleague", 18));
-//     transactions.push_back(transaction("a", "d", "colleague", 8));
-//     transactions.push_back(transaction("d", "a", "colleague", 9));
-//     transactions.push_back(transaction("d", "e", "colleague", 7));
+//     transactions.push_back(transaction("4", "5", "colleague", 7));
+//     transactions.push_back(transaction("1", "3", "friend", 18));
+//     transactions.push_back(transaction("1", "2", "friend", 10));
+//     transactions.push_back(transaction("3", "4", "friend", 20));
+//     transactions.push_back(transaction("3", "5", "friend", 9));
+//     transactions.push_back(transaction("4", "1", "colleague", 9));
+//     transactions.push_back(transaction("1", "2", "family", 30));
+//     transactions.push_back(transaction("1", "5", "family", 20));
+//     transactions.push_back(transaction("2", "5", "family", 40));
+//     transactions.push_back(transaction("1", "5", "colleague", 3));
+//     transactions.push_back(transaction("5", "2", "colleague", 10));
+//     transactions.push_back(transaction("2", "4", "colleague", 18));
+//     transactions.push_back(transaction("1", "4", "colleague", 8));
+//     transactions.push_back(transaction("1", "4", "friend", 10));
+    
+    
     
 
     
 
 //     /*-------------------------- 出块 ----------------------------------------*/
-//     std::vector<Block> blockchain = Block::construct_chain(transactions, 2);
+//     MPT mpt;
+//     std::vector<Block> blockchain = Block::construct_chain(transactions, 2, mpt);
     
 
 //     /*--------------------------- 查询 ----------------------------------------*/
-//     std::string u_q = "d";
+//     std::string u_q = "1";
 //     std::string type_q = "colleague";
-//     int K=1;
-//     int lb = 0;
+//     int K=2;
+//     int lb = 5;
 //     int ub = 6;
 
-//     Response response = Query::Search(u_q, type_q, K, lb, ub, blockchain);
+//     Response response = Query::Search(u_q, type_q, K, lb, ub, blockchain, mpt);
 //     std::vector<std::pair<std::string, int>> final_result= Query::Verify(u_q, type_q, response, K, lb, ub, blockchain);
 
 //     for(int i=0; i<final_result.size(); i++){
@@ -75,27 +78,27 @@ int main(void){
     std::vector<transaction>& transactions = exp.transactions;
 
     /*-------------------------- 出块 ----------------------------------------*/
-    
-    std::vector<Block> blockchain = Block::construct_chain(transactions, 10);
-    
-    
-
-    /*--------------------------- 查询 ----------------------------------------*/
-    std::string u_q = "1";
-    std::string type_q = "friend";
-    int K=10;
-    int lb = 0;
-    int ub = blockchain.size()-1;
-
-    
-
     auto start = std::chrono::high_resolution_clock::now();
-    Response response = Query::Search(u_q, type_q, K, lb, ub, blockchain);
-    std::vector<std::pair<std::string, int>> final_result= Query::Verify(u_q, type_q, response, K, lb, ub, blockchain);
+    MPT mpt;
+    std::vector<Block> blockchain = Block::construct_chain(transactions, 10, mpt);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
     // 输出执行时间
     std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
+    
+
+    /*--------------------------- 查询 ----------------------------------------*/
+    std::string u_q = "11110";
+    std::string type_q = "friend";
+    int K=10;
+    int lb = 0;
+    int ub = blockchain.size()-1;
+    // int ub = 31672;
+
+    
+    Response response = Query::Search(u_q, type_q, K, lb, ub, blockchain, mpt);
+    std::vector<std::pair<std::string, int>> final_result= Query::Verify(u_q, type_q, response, K, lb, ub, blockchain);
+    
     
     
     for(int i=0; i<final_result.size(); i++){

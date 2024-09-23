@@ -52,10 +52,11 @@ public:
         param:
             transactions - 数据集
             max_transactions - 一个区块中交易的最大数量
+            mpt - 全局的状态树
         return:
             模拟的区块链
     */
-    static std::vector<Block> construct_chain(std::vector<transaction>& transactions, int max_transactions);
+    static std::vector<Block> construct_chain(std::vector<transaction>& transactions, int max_transactions, MPT& mpt);
 };
 
 

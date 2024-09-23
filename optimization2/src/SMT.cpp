@@ -326,7 +326,8 @@ std::string SMT::cal_root_hash(std::vector<SMTNode>& subtree, int id){
     if(node.isLeaf){
         std::string u = node.compound_key.first;
         std::string type = node.compound_key.second;
-        std::string msg = u+type+ std::to_string(node.l) + node.h1;
+        int id_pre = node.id_pre;
+        std::string msg = u+type+ std::to_string(node.l) + node.h1 + std::to_string(id_pre);
         node.digest = Crypto_Primitives::SHA256_digest(msg);
         return node.digest;
     }

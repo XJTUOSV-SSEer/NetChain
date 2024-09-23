@@ -95,7 +95,7 @@ Block::Block(int blk_id, std::string pre_hash, std::vector<struct transaction>& 
 
 
 
-std::vector<Block> Block::construct_chain(std::vector<transaction>& transactions, int max_transactions){
+std::vector<Block> Block::construct_chain(std::vector<transaction>& transactions, int max_transactions, MPT& mpt){
     std::vector<Block> blockchain;
     // 当前批次的交易
     std::vector<transaction> batch;
@@ -114,7 +114,7 @@ std::vector<Block> Block::construct_chain(std::vector<transaction>& transactions
         }
 
         // 出块
-        Block blk(int(i/max_transactions), std::string(32, '\0'), batch);
+        Block blk(int(i/max_transactions), std::string(32, '\0'), batch, mpt);
         blockchain.push_back(blk);
     }
 
