@@ -34,6 +34,16 @@ public:
     Block(std::vector<transaction>& transactions, std::string preBkHash, 
             std::map<std::pair<std::string, std::string>, std::string>& prime_map, MultisetAccumulator& msa);
 
+
+    /*
+        给定交易数据集，构造区块链
+        param:
+            transactions - 数据集
+            max_transactions - 一个区块中交易的最大数量
+        return:
+            模拟的区块链
+    */
+    static std::vector<Block> construct_chain(std::vector<transaction>& transactions, int max_transactions);
 };
 
 

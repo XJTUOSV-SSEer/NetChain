@@ -15,7 +15,7 @@ double MHT::get_similarity(std::set<std::pair<std::string, std::string>>& a,
     std::set_union(a.begin(), a.end(), b.begin(), b.end(), std::inserter(s_union, s_union.begin()));
     std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::inserter(s_inter, s_inter.begin()));
 
-    return s_union.size() / s_inter.size();
+    return s_inter.size() / s_union.size();
 }
 
 
@@ -49,7 +49,7 @@ MHT::MHT(std::vector<transaction> txs, std::map<std::pair<std::string, std::stri
                 int cid = nodes[i];
                 // 计算两个结点的相似度
                 double similarity = get_similarity(this->tree[id_l].com_key_set, this->tree[cid].com_key_set);
-                if(similarity > max_similarity){
+                if(similarity >= max_similarity){
                     max_similarity = similarity;
                     id_r = cid;
                     id_target = i;
@@ -84,4 +84,59 @@ MHT::MHT(std::vector<transaction> txs, std::map<std::pair<std::string, std::stri
 
 MHT::MHT(){
 
+}
+
+
+
+
+int MHT::search(MHTProof& mht_proof, int current_id, std::pair<std::string, std::string> com_key_q, 
+                MultisetAccumulator& msa, std::string p){
+    std::vector<MHTNode>& subtree = mht_proof.subtree;
+    std::map<int, Nonmembership_Proof>& proof = mht_proof.proof;
+
+
+    // 判断结点是否包含混合键
+    MHTNode& node = this->tree[current_id];
+
+    // 包含com_key_q
+    if(node.com_key_set.find(com_key_q) != node.com_key_set.end()){
+        // 是叶结点
+        if(node.isLeaf){
+            MHTNode newnode;
+            newnode.isLeaf = true;
+            newnode.lchild = -1;    newnode.rchild = -1;
+            newnode.value = node.value;
+            newnode.acc = node.acc;
+            subtree.push_back(newnode);
+            return subtree.size()-1;
+        }
+
+        // 是内部结点
+        else{
+            MHTNode newnode;
+            newnode.isLeaf = false;
+            newnode.acc = node.acc;
+            // 判断左右子结点
+            newnode.lchild = search(mht_proof, node.lchild, com_key_q, msa, p);
+            newnode.rchild = search(mht_proof, node.rchild, com_key_q, msa, p);
+
+            subtree.push_back(newnode);
+            return subtree.size()-1;
+        }
+    }
+
+    // 不包含com_key_q
+    else{
+        MHTNode newnode;
+        newnode.acc = node.acc;
+        newnode.digest = node.digest;
+        subtree.push_back(newnode);
+        
+        // 生成Nonmembership proof
+        Nonmembership_Proof nonmember_proof = msa.proove_nonmembership_prime(node.product, p);
+
+        proof[subtree.size()-1] = nonmember_proof;
+
+        return subtree.size()-1;
+    }
 }

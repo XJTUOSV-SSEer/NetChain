@@ -80,11 +80,14 @@ int main(void){
     /*-------------------------- 出块 ----------------------------------------*/
     auto start = std::chrono::high_resolution_clock::now();
     MPT mpt;
-    std::vector<Block> blockchain = Block::construct_chain(transactions, 10, mpt);
+    std::vector<Block> blockchain = Block::construct_chain(transactions, 1000, mpt);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
     // 输出执行时间
     std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
+
+
+    std::cout << blockchain.size() <<std::endl;
     
 
     /*--------------------------- 查询 ----------------------------------------*/

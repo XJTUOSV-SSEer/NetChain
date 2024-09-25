@@ -47,6 +47,13 @@ struct MHTNode{
 
 
     /*
+        默认构造函数
+    */
+    MHTNode(){
+
+    }
+
+    /*
         构造函数，构造一个叶结点
         param:
             tx - 一条交易
@@ -149,7 +156,11 @@ struct MHTNode{
 
 // MHT的证明
 struct MHTProof{
+    std::vector<MHTNode> subtree;
+    int root_id;
 
+    // 储存subtree中不匹配的结点对应的non-membership proof
+    std::map<int, Nonmembership_Proof> proof;
 };
 
 
@@ -161,6 +172,14 @@ struct Response{
 
 
 
+
+/*
+    用于对原始图数据进行shuffle，使得局部有序
+*/
+struct segment{
+    // <u,v> pair
+    std::vector<std::pair<int, int>> v;
+};
 
 
 
