@@ -11,9 +11,20 @@
 
 /*-------------------------------- 调整数据集 --------------------------------------*/ 
 // int main(void){
-//     std::string source = "../../dataset/Email-Enron.txt";
-//     std::string target = "../../dataset/dataset1.txt";
-//     experiment::adjust_dataset(source, 8, 200, target);
+//     // std::string source = "../../dataset/Email-Enron.txt";
+//     // std::string target = "../../dataset/dataset1.txt";
+//     // experiment::adjust_dataset(source, 8, 200, target);
+
+//     std::string source = "../../dataset/gplus_combined.txt";
+//     std::string target = "../../dataset/dataset2.txt";
+//     // 过滤重复的edge
+//     // experiment::filterate("../../dataset/gplus_combined.txt");
+
+//     // 输出数据集的统计信息
+//     // experiment::show_dataset("../../dataset/gplus_combined.txt", 1);
+
+//     // 调整数据集
+//     experiment::adjust_dataset(source, 8, 10000, target);
 // }
 
 
@@ -68,7 +79,7 @@
 
 /*-------------------------------- 大数据集测试 --------------------------------------*/
 int main(void){
-    std::string filename = "../../dataset/dataset1.txt";
+    std::string filename = "../../dataset/dataset2.txt";
     experiment exp(filename);
 
 
@@ -77,19 +88,18 @@ int main(void){
     /*-------------------------- 出块 ----------------------------------------*/
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<Block> blockchain = Block::construct_chain(transactions, 1000);
+    
+    
+    /*--------------------------- 查询 ----------------------------------------*/
+    std::string u_q = "116807883656585676940";
+    std::string type_q = "friend";
+    int K=100;
+    int lb = 0;
+    int ub = blockchain.size()-1;
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
     // 输出执行时间
     std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
-    
-
-    /*--------------------------- 查询 ----------------------------------------*/
-    std::string u_q = "30000";
-    std::string type_q = "friend";
-    int K=5;
-    int lb = 0;
-    int ub = 367;
-
     
 
     

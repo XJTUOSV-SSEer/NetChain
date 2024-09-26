@@ -59,34 +59,34 @@
 
 /*-------------------------------- 大数据集测试 --------------------------------------*/
 int main(void){
-    std::string filename = "../../dataset/dataset1.txt";
+    std::string filename = "../../dataset/dataset2.txt";
     experiment exp(filename);
 
 
     std::vector<transaction>& transactions = exp.transactions;
 
     /*-------------------------- 出块 ----------------------------------------*/
-    
-    std::vector<Block> blockchain = Block::construct_chain(transactions, 1000);
-    
-        
-
-    /*--------------------------- 查询 ----------------------------------------*/
-    std::string u_q = "1";
-    std::string type_q = "friend";
-    int K=10;
-    int lb = 100;
-    // int ub = blockchain.size()-1;
-    int ub = 310;
-
     auto start = std::chrono::high_resolution_clock::now();
-    Response response = Query::search(blockchain, u_q, type_q, K, lb, ub);
-
-    std::vector<std::pair<std::string, int>> final_result= Query::verify(blockchain, u_q, type_q, K, lb, ub, response);
+    std::vector<Block> blockchain = Block::construct_chain(transactions, 1000);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
     // 输出执行时间
     std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
+        
+
+    /*--------------------------- 查询 ----------------------------------------*/
+    std::string u_q = "116807883656585676940";
+    std::string type_q = "friend";
+    int K=100;
+    int lb = 0;
+    int ub = blockchain.size()-1;
+    // int ub = 310;
+
+    
+    Response response = Query::search(blockchain, u_q, type_q, K, lb, ub);
+
+    std::vector<std::pair<std::string, int>> final_result= Query::verify(blockchain, u_q, type_q, K, lb, ub, response);
+    
     
     
     

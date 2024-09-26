@@ -32,6 +32,11 @@ public:
     static void adjust_dataset(std::string filename, int group_size, int ub, std::string target_file);
 
 
+    /*
+        输入原始数据集，将其中重复的边过滤掉，保证所有边都是unique
+    */
+    static void filterate(std::string filename);
+
 
     /*
         输出数据集的一些统计信息，如每个k对应的v数量
