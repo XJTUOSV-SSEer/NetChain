@@ -86,12 +86,10 @@ int main(void){
     // 输出执行时间
     std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
 
-
-    std::cout << blockchain.size() <<std::endl;
     
 
     /*--------------------------- 查询 ----------------------------------------*/
-    std::string u_q = "11110";
+    std::string u_q = "1";
     std::string type_q = "friend";
     int K=10;
     int lb = 0;

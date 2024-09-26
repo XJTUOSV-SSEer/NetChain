@@ -154,6 +154,36 @@ struct MHTNode{
 };
 
 
+
+// 跳表中一跳对应的node
+struct SkipListNode{
+    // 这一跳为空，不填充
+    bool is_empty;
+    // 一跳中的区块数
+    int skip;
+    // 一跳中区块的所有混合键
+    std::set<std::pair<std::string, std::string>> com_key_set;
+    std::string acc;
+
+    // 对应于com_key_set的素数乘积
+    std::string product;
+
+    // H(acc)
+    std::string digest;
+};
+
+
+
+
+struct SkipList{
+    // 储存多个跳。5级，skip分别为2, 4, 8, 16, 32
+    std::vector<SkipListNode> vec;
+
+    // 各个SkipListNode的digest级联，并做哈希
+    std::string digest;
+};
+
+
 // MHT的证明
 struct MHTProof{
     std::vector<MHTNode> subtree;
@@ -164,10 +194,26 @@ struct MHTProof{
 };
 
 
+// 跳表的证明
+struct SkipListProof{
+    // vec中匹配skip的元素下标
+    int id;
+
+    // 储存证明。其中部分SkipListNode存digest，匹配skip的存acc
+    std::vector<SkipListNode> vec;
+
+    // 储存匹配的skip对应的non-membership proof
+    Nonmembership_Proof proof;
+};
+
+
 // SP给client返回的数据
 struct Response{
     // 每个区块对应的证明子树
     std::map<int, MHTProof> VO;
+
+    // 每跳对应的证明，map的键为skip的起始区块id
+    std::map<int, SkipListProof> VO2;
 };
 
 
@@ -185,19 +231,7 @@ struct segment{
 
 
 
-// 跳表中一跳对应的node
-struct SkipListNode{
-    // 这一跳为空，不填充
-    bool is_empty;
-    // 一跳中的区块数
-    int skip;
-    // 一跳中区块的所有混合键
-    std::set<std::pair<std::string, std::string>> com_key_set;
-    std::string acc;
 
-    // 对应于com_key_set的素数乘积
-    std::string product;
-};
 
 
 #endif

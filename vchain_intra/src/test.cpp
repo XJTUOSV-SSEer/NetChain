@@ -64,28 +64,29 @@ int main(void){
     std::vector<transaction>& transactions = exp.transactions;
 
     /*-------------------------- 出块 ----------------------------------------*/
+    auto start = std::chrono::high_resolution_clock::now();
     std::vector<Block> blockchain = Block::construct_chain(transactions, 1000);
 
-    std::cout << blockchain.size() <<std::endl;
-    
-
-    /*--------------------------- 查询 ----------------------------------------*/
-    std::string u_q = "11111";
-    std::string type_q = "friend";
-    int K=10;
-    int lb = 0;
-    // int ub = blockchain.size()-2;
-    int ub = 310;
-
-    auto start = std::chrono::high_resolution_clock::now();
-    Response response = Query::search(blockchain, u_q, type_q, K, lb, ub);
-
-    std::vector<std::pair<std::string, int>> final_result= Query::verify(blockchain, u_q, type_q, K, lb, ub, response);
-    
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
     // 输出执行时间
     std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
+    
+
+    /*--------------------------- 查询 ----------------------------------------*/
+    std::string u_q = "1";
+    std::string type_q = "friend";
+    int K=10;
+    int lb = 0;
+    int ub = blockchain.size()-1;
+    // int ub = 310;
+
+    
+    Response response = Query::search(blockchain, u_q, type_q, K, lb, ub);
+
+    std::vector<std::pair<std::string, int>> final_result= Query::verify(blockchain, u_q, type_q, K, lb, ub, response);
+    
+    
     
     
     for(int i=0; i<final_result.size(); i++){
