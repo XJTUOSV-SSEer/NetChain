@@ -178,7 +178,7 @@ struct Response{
 */
 struct segment{
     // <u,v> pair
-    std::vector<std::pair<int, int>> v;
+    std::vector<std::pair<std::string, std::string>> v;
 };
 
 

@@ -71,7 +71,7 @@
 
 /*-------------------------------- 大数据集测试 --------------------------------------*/
 int main(void){
-    std::string filename = "../../dataset/dataset1.txt";
+    std::string filename = "../../dataset/dataset2.txt";
     experiment exp(filename);
 
 
@@ -89,7 +89,8 @@ int main(void){
     
 
     /*--------------------------- 查询 ----------------------------------------*/
-    std::string u_q = "1";
+    std::string u_q = "116807883656585676940";
+    // std::string u_q = "1283";
     std::string type_q = "friend";
     int K=10;
     int lb = 0;

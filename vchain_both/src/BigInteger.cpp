@@ -465,8 +465,8 @@ void BigInteger::generate_prime(BigInteger& ret,std::string s){
     int digest_len;
     Crypto_Primitives::SHA256_digest((unsigned char*)c,len,(unsigned char*)digest,(unsigned int*)&digest_len);
 
-    // 将digest转换为BigInteger对象。将digest前4字节取出，并累增进行素性测试
-    BigInteger num((unsigned char*)digest, 4);
+    // 将digest转换为BigInteger对象。将digest前8字节取出，并累增进行素性测试
+    BigInteger num((unsigned char*)digest, 8);
     BigInteger zero(0);
     if(BigInteger::cmp(num,zero)==-1){
         BigInteger tmp("-1");

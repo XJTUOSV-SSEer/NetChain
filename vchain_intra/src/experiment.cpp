@@ -13,10 +13,11 @@
 #include <random>       // for std::default_random_engine
 
 
-void experiment::show_dataset(std::string filename, int num){
+
+void experiment::filterate(std::string filename){
     std::ifstream file(filename);  // 打开文件
     std::string line;
-    std::map<int, int> m;
+    std::map<std::string, std::set<std::string>> m;
 
     if (!file.is_open()) {
         std::cout << "can not open file" << std::endl;
@@ -24,6 +25,7 @@ void experiment::show_dataset(std::string filename, int num){
     }
 
     // 逐行读取文件
+    int cnt = 0;            // 行数
     while (std::getline(file, line)) {
         // 跳过以 # 开头的行
         if (line.empty() || line[0] == '#') {
@@ -31,21 +33,78 @@ void experiment::show_dataset(std::string filename, int num){
         }
         
         std::istringstream iss(line);
-        int a, b;
+        std::string a, b;
         
         // 读取每一行中的两个整数
         iss >> a >> b;
         if(m.find(a)==m.end()){
-            m[a] = 0;
+            m[a] = std::set<std::string>();
         }
-        m[a] = m[a]+1;
+        m[a].insert(b);
+
+        cnt++;
     }
     
     file.close();  // 关闭文件
 
+    std::cout << "line number:" << cnt <<std::endl;
 
-    for(std::map<int, int>::iterator it = m.begin(); it!=m.end(); it++){
-        std::cout<< it->first << " " << it->second <<std::endl;
+
+    // 将统计信息写入原数据集文件
+    std::ofstream outputfile(filename);
+
+    for(std::map<std::string, std::set<std::string>>::iterator it = m.begin(); it!=m.end(); it++){
+        for(std::string str: it->second){
+            outputfile << it->first << " " << str <<std::endl;
+        }
+    }
+
+    return;
+}
+
+
+
+void experiment::show_dataset(std::string filename, int num){
+    std::ifstream file(filename);  // 打开文件
+    std::string line;
+    std::map<std::string, std::set<std::string>> m;
+
+    if (!file.is_open()) {
+        std::cout << "can not open file" << std::endl;
+        return;
+    }
+
+    // 逐行读取文件
+    int cnt = 0;            // 行数
+    while (std::getline(file, line)) {
+        // 跳过以 # 开头的行
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+        
+        std::istringstream iss(line);
+        std::string a, b;
+        
+        // 读取每一行中的两个整数
+        iss >> a >> b;
+        if(m.find(a)==m.end()){
+            m[a] = std::set<std::string>();
+        }
+        m[a].insert(b);
+
+        cnt++;
+    }
+    
+    file.close();  // 关闭文件
+
+    std::cout << "line number:" << cnt <<std::endl;
+
+
+    // 将统计信息写入文件
+    std::ofstream outputfile("../../dataset/stat.txt");
+
+    for(std::map<std::string, std::set<std::string>>::iterator it = m.begin(); it!=m.end(); it++){
+        outputfile << it->first << " " << it->second.size() <<std::endl;
     }
 
     return;
@@ -57,7 +116,7 @@ void experiment::adjust_dataset(std::string filename, int seg_size, int ub, std:
     std::ifstream file(filename);  // 打开文件
     std::string line;
     // 键为u，值为相应的v的集合
-    std::map<int, std::queue<int>> multimap;
+    std::map<std::string, std::queue<std::string>> multimap;
 
     if (!file.is_open()) {
         std::cout << "can not open file" << std::endl;
@@ -72,21 +131,22 @@ void experiment::adjust_dataset(std::string filename, int seg_size, int ub, std:
         }
         
         std::istringstream iss(line);
-        int a, b;        
+        std::string a, b;        
         // 读取每一行中的两个整数
         iss >> a >> b;
 
         if(multimap.find(a)==multimap.end()){
-            multimap[a] = std::queue<int>();
+            multimap[a] = std::queue<std::string>();
         }
+        
         multimap[a].push(b);
     }
 
     // 将multimap中每个u对应的v进行分段
     std::vector<segment> segments;
-    for(std::map<int, std::queue<int>>::iterator it = multimap.begin(); it!=multimap.end(); it++){
-        int u = it -> first;
-        std::queue<int> v_set = it->second;
+    for(std::map<std::string, std::queue<std::string>>::iterator it = multimap.begin(); it!=multimap.end(); it++){
+        std::string u = it -> first;
+        std::queue<std::string> v_set = it->second;
 
         
         while(!v_set.empty()){
@@ -117,7 +177,7 @@ void experiment::adjust_dataset(std::string filename, int seg_size, int ub, std:
     for(int i=0; i< segments.size(); i++){
         segment& seg = segments[i];
         for(int j=0; j<seg.v.size(); j++){
-            std::pair<int, int> p = seg.v[j];
+            std::pair<std::string, std::string>& p = seg.v[j];
             // 随机的w
             std::random_device rd;
             std::mt19937 gen(rd());
@@ -160,11 +220,12 @@ experiment::experiment(std::string filename){
         }
         
         std::istringstream iss(line);
-        int u, v, w;
+        std::string u,v;
+        int w;
         
         // 读取每一行中的3个整数
         iss >> u >> v >> w;
-        transaction tx(std::to_string(u), std::to_string(v), "friend", w);
+        transaction tx(u, v, "friend", w);
         this->transactions.push_back(tx);
     }
     

@@ -130,7 +130,11 @@ std::vector<std::pair<std::string, int>> Query::verify(std::vector<Block>& block
 
             // Non-membership验证
             if(!msa.verify_nonmembership_prime(proof_sl.vec[proof_sl.id].acc, proof_sl.proof, p_str)){
+
                 std::cout << "Non-membership verification in skiplist failed" <<std::endl;
+                std::cout << proof_sl.id <<std::endl;
+                std::cout << proof_sl.vec[proof_sl.id].acc <<std::endl;
+                std::cout << current_blk << std::endl;
                 return std::vector<std::pair<std::string, int>>();
             }
 
