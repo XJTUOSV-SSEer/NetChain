@@ -42,6 +42,12 @@ public:
         输出数据集的一些统计信息，如每个k对应的v数量
     */
     static void show_dataset(std::string filename, int num);
+
+
+    /*
+        txs_in_one_block - 一个块中的交易数
+    */
+    void test_mining(int txs_in_one_block);
 };
 
 

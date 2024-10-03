@@ -67,41 +67,41 @@
 
 
 /*-------------------------------- 大数据集测试 --------------------------------------*/
-int main(void){
-    std::string filename = "../../dataset/dataset2.txt";
-    experiment exp(filename);
+// int main(void){
+//     std::string filename = "../../dataset/dataset2.txt";
+//     experiment exp(filename);
 
 
-    std::vector<transaction>& transactions = exp.transactions;
+//     std::vector<transaction>& transactions = exp.transactions;
 
-    /*-------------------------- 出块 ----------------------------------------*/
+//     /*-------------------------- 出块 ----------------------------------------*/
     
-    std::vector<Block> blockchain = Block::construct_chain(transactions, 10);
+//     std::vector<Block> blockchain = Block::construct_chain(transactions, 10);
     
-    
-
-    /*--------------------------- 查询 ----------------------------------------*/
-    std::string u_q = "116807883656585676940";
-    std::string type_q = "friend";
-    int K=10;
-    int lb = 0;
-    int ub = blockchain.size()-1;
-
     
 
-    auto start = std::chrono::high_resolution_clock::now();
-    Response response = Query::Search(u_q, type_q, K, lb, ub, blockchain);
-    std::vector<std::pair<std::string, int>> final_result= Query::Verify(u_q, type_q, response, K, lb, ub, blockchain);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = end - start;
-    // 输出执行时间
-    std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
+//     /*--------------------------- 查询 ----------------------------------------*/
+//     std::string u_q = "116807883656585676940";
+//     std::string type_q = "friend";
+//     int K=10;
+//     int lb = 0;
+//     int ub = blockchain.size()-1;
+
+    
+
+//     auto start = std::chrono::high_resolution_clock::now();
+//     Response response = Query::Search(u_q, type_q, K, lb, ub, blockchain);
+//     std::vector<std::pair<std::string, int>> final_result= Query::Verify(u_q, type_q, response, K, lb, ub, blockchain);
+//     auto end = std::chrono::high_resolution_clock::now();
+//     std::chrono::duration<double> duration = end - start;
+//     // 输出执行时间
+//     std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
     
     
-    for(int i=0; i<final_result.size(); i++){
-        std::cout << final_result[i].first << "," << final_result[i].second <<std::endl;
-    }
-}
+//     for(int i=0; i<final_result.size(); i++){
+//         std::cout << final_result[i].first << "," << final_result[i].second <<std::endl;
+//     }
+// }
 
 
 

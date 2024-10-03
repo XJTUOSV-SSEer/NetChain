@@ -67,7 +67,7 @@ int main(void){
 
     /*-------------------------- 出块 ----------------------------------------*/
     auto start = std::chrono::high_resolution_clock::now();
-    std::vector<Block> blockchain = Block::construct_chain(transactions, 1000);
+    std::vector<Block> blockchain = Block::construct_chain(transactions, 200);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
     // 输出执行时间
@@ -75,10 +75,12 @@ int main(void){
 
 
     /*--------------------------- 查询 ----------------------------------------*/
+    // 4879个结果
+    std::cout << "116807883656585676940:" << std::endl;
     std::string u_q = "116807883656585676940";
     // std::string u_q = "3954";
     std::string type_q = "friend";
-    int K=100;
+    int K=1000;
     int lb = 0;
     int ub = blockchain.size()-1;
     // int ub = 310;
@@ -97,4 +99,61 @@ int main(void){
     for(int i=0; i<final_result.size(); i++){
         std::cout << final_result[i].first << "," << final_result[i].second <<std::endl;
     }
+
+
+    // 2319个结果
+    std::cout << "100013503239814724841:" << std::endl;
+    u_q = "100013503239814724841";
+    // std::string u_q = "3954";
+    type_q = "friend";
+    K=1000;
+    lb = 0;
+    ub = blockchain.size()-1;
+    // int ub = 310;
+
+    start = std::chrono::high_resolution_clock::now();
+    response = Query::search(blockchain, u_q, type_q, K, lb, ub);
+
+    final_result= Query::verify(blockchain, u_q, type_q, K, lb, ub, response);
+    
+    end = std::chrono::high_resolution_clock::now();
+    duration = end - start;
+    // 输出执行时间
+    std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
+    
+    
+    for(int i=0; i<final_result.size(); i++){
+        std::cout << final_result[i].first << "," << final_result[i].second <<std::endl;
+    }
+
+
+
+
+    // 1851个结果
+    std::cout << "116837025859476229246:" << std::endl;
+    u_q = "116837025859476229246";
+    // std::string u_q = "3954";
+    type_q = "friend";
+    K=1000;
+    lb = 0;
+    ub = blockchain.size()-1;
+    // int ub = 310;
+
+    start = std::chrono::high_resolution_clock::now();
+    response = Query::search(blockchain, u_q, type_q, K, lb, ub);
+
+    final_result= Query::verify(blockchain, u_q, type_q, K, lb, ub, response);
+    
+    end = std::chrono::high_resolution_clock::now();
+    duration = end - start;
+    // 输出执行时间
+    std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
+    
+    
+    for(int i=0; i<final_result.size(); i++){
+        std::cout << final_result[i].first << "," << final_result[i].second <<std::endl;
+    }
 }
+
+
+

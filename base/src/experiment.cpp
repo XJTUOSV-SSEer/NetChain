@@ -1,6 +1,4 @@
 #include "../include/experiment.h"
-
-
 #include <vector>
 #include <queue>
 #include <map>
@@ -11,6 +9,8 @@
 #include <sstream>
 #include <algorithm>    // for std::shuffle
 #include <random>       // for std::default_random_engine
+#include <chrono>
+#include "../include/Block.h"
 
 
 
@@ -230,4 +230,16 @@ experiment::experiment(std::string filename){
     }
     
     file.close();  // 关闭文件
+}
+
+
+
+
+void experiment::test_mining(int txs_in_one_block){
+    auto start = std::chrono::high_resolution_clock::now();
+    Block::construct_chain(transactions, txs_in_one_block);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = end - start;
+    // 输出执行时间
+    std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
 }

@@ -56,40 +56,56 @@
 
 
 /*-------------------------------- 大数据集测试 --------------------------------------*/
+// int main(void){
+//     std::string filename = "../../dataset/dataset2.txt";
+//     experiment exp(filename);
+
+
+//     std::vector<transaction>& transactions = exp.transactions;
+
+//     /*-------------------------- 出块 ----------------------------------------*/
+//     auto start = std::chrono::high_resolution_clock::now();
+//     std::vector<Block> blockchain = Block::construct_chain(transactions, 1000);
+
+//     auto end = std::chrono::high_resolution_clock::now();
+//     std::chrono::duration<double> duration = end - start;
+//     // 输出执行时间
+//     std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
+    
+
+//     /*--------------------------- 查询 ----------------------------------------*/
+//     std::string u_q = "116807883656585676940";
+//     std::string type_q = "friend";
+//     int K=100;
+//     int lb = 0;
+//     int ub = blockchain.size()-1;
+//     // int ub = 310;
+
+    
+//     Response response = Query::search(blockchain, u_q, type_q, K, lb, ub);
+
+//     std::vector<std::pair<std::string, int>> final_result= Query::verify(blockchain, u_q, type_q, K, lb, ub, response);
+    
+    
+    
+    
+//     for(int i=0; i<final_result.size(); i++){
+//         std::cout << final_result[i].first << "," << final_result[i].second <<std::endl;
+//     }
+// }
+
+
+
+
+/*-------------------------------- 实验数据 --------------------------------------*/
 int main(void){
-    std::string filename = "../../dataset/dataset2.txt";
+    // 测试出块时间，使用Enron Email数据集
+    std::string filename = "../../dataset/dataset1.txt";
     experiment exp(filename);
+    exp.test_mining(150);
 
-
-    std::vector<transaction>& transactions = exp.transactions;
-
-    /*-------------------------- 出块 ----------------------------------------*/
-    auto start = std::chrono::high_resolution_clock::now();
-    std::vector<Block> blockchain = Block::construct_chain(transactions, 1000);
-
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = end - start;
-    // 输出执行时间
-    std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
-    
-
-    /*--------------------------- 查询 ----------------------------------------*/
-    std::string u_q = "116807883656585676940";
-    std::string type_q = "friend";
-    int K=100;
-    int lb = 0;
-    int ub = blockchain.size()-1;
-    // int ub = 310;
-
-    
-    Response response = Query::search(blockchain, u_q, type_q, K, lb, ub);
-
-    std::vector<std::pair<std::string, int>> final_result= Query::verify(blockchain, u_q, type_q, K, lb, ub, response);
-    
-    
-    
-    
-    for(int i=0; i<final_result.size(); i++){
-        std::cout << final_result[i].first << "," << final_result[i].second <<std::endl;
-    }
+    // // 测试出块时间，使用GPLUS数据集
+    // std::string filename = "../../dataset/dataset2.txt";
+    // experiment exp(filename);
+    // exp.test_mining(500);
 }
