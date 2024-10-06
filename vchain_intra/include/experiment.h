@@ -48,6 +48,19 @@ public:
         txs_in_one_block - 一个块中的交易数
     */
     void test_mining(int txs_in_one_block);
+
+
+
+    /*
+        给定time window size和参数K，测试search和verify的时间。
+        具体地，首先构建区块链，然后对所有time window size和K的组合，测试query performance
+        param:
+            txs_in_one_block - 
+            tw_size - 一个vector容器，储存不同的time window size
+            K_list - 一个vector容器，储存不同的参数K
+            u_q - 查询的键
+    */
+    void test_query(int txs_in_one_block, std::vector<int> tw_size, std::vector<int> K_list, std::string u_q);
 };
 
 

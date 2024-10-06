@@ -167,15 +167,25 @@ struct Nonmembership_Proof MultisetAccumulator::proove_nonmembership(std::string
 
 struct Nonmembership_Proof MultisetAccumulator::proove_nonmembership_prime(std::string product,std::string x_s){
     BigInteger x(x_s);
-    // 根据拓展欧几里得定理计算a*product+b*x=1的解a,b
-    BigInteger a,b;
     BigInteger x_p(product);
+    struct Nonmembership_Proof pi;
+
+    // 判断，若 x_p%x == 0 返回
+    BigInteger tmp;
+    BigInteger::mod(tmp, x_p, x);
+    if(tmp.is_zero()){
+        pi.a = "0";
+        pi.d = "0";
+        return pi;
+    }
+
+    // 根据拓展欧几里得定理计算a*product+b*x=1的解a,b
+    BigInteger a,b;    
     BigInteger::xgcd(x_p,x,a,b);
 
     // std::cout<<"a:"<<a.to_string()<<" b:"<<b.to_string()<<std::endl;
 
-    // 计算证明pi
-    struct Nonmembership_Proof pi;
+    // 计算证明pi    
     pi.a=a.to_string();
 
     BigInteger generator(this->g);

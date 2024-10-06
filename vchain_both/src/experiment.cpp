@@ -4,7 +4,7 @@
 #include <vector>
 #include <queue>
 #include <map>
-#include "Structs.h"
+#include "../include/Structs.h"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -12,7 +12,9 @@
 #include <algorithm>    // for std::shuffle
 #include <random>       // for std::default_random_engine
 #include <chrono>
-#include <Block.h>
+#include "../include/Block.h"
+#include "../include/Query.h"
+
 
 
 
@@ -245,4 +247,44 @@ void experiment::test_mining(int txs_in_one_block){
     std::chrono::duration<double> duration = end - start;
     // 输出执行时间
     std::cout << "Mining Duration: " << duration.count() << " seconds" << std::endl;
+}
+
+
+
+
+void experiment::test_query(int txs_in_one_block, std::vector<int> tw_size, std::vector<int> K_list, 
+                            std::string u_q){
+    std::vector<Block> blockchain = Block::construct_chain(transactions, txs_in_one_block);
+    std::string type_q = "friend";
+    std::chrono::_V2::system_clock::time_point start, end;
+    std::chrono::duration<double> duration;
+
+    // 对不同组合的参数进行测试
+    for(int tw: tw_size){
+        for(int K: K_list) {
+            // Search
+            start = std::chrono::high_resolution_clock::now();
+
+            int lb = 0;
+            int ub = tw-1;
+            Response response = Query::search(blockchain, u_q, type_q, K, lb, ub);
+
+            end = std::chrono::high_resolution_clock::now();
+            duration = end - start;
+            // 查询时间
+            std::cout << "Search Duration: " << duration.count() << " seconds" << std::endl;
+
+
+            // Verify
+            start = std::chrono::high_resolution_clock::now();
+
+            Query::verify(blockchain, u_q, type_q, K, lb, ub, response);
+
+            end = std::chrono::high_resolution_clock::now();
+            duration = end - start;
+            // 验证时间
+            std::cout << "Verify Duration: " << duration.count() << " seconds" << std::endl;
+        }
+    }
+
 }
