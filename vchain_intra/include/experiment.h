@@ -6,6 +6,12 @@
 #include <string>
 
 class experiment{
+private:
+    /*
+        给定response，测试VO size，返回字节数
+    */
+    static int test_VO_size(Response& response);
+    
 public:
     std::vector<transaction> transactions;
 

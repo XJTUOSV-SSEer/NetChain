@@ -271,6 +271,11 @@ void experiment::test_query(int txs_in_one_block, std::vector<int> tw_size, std:
             std::cout << "Search Duration: " << duration.count() << " seconds" << std::endl;
 
 
+            // VO Size, KB
+            double vo_size = double(test_VO_size(response)) / double(1024);
+            std::cout << "VO Size: " << vo_size << std::endl;
+
+
             // Verify
             start = std::chrono::high_resolution_clock::now();
 
@@ -283,4 +288,51 @@ void experiment::test_query(int txs_in_one_block, std::vector<int> tw_size, std:
         }
     }
 
+}
+
+
+
+
+int experiment::test_VO_size(Response& response){
+    // 每个区块对应的证明子树
+    std::map<int, MHTProof>& VO = response.VO;
+
+    // 总的存储空间
+    int total_size = 0;
+
+    // 计算VO SIZE
+    for(std::pair<int, MHTProof> pf: VO){
+        MHTProof& mhtproof = pf.second;
+        
+        // 对subtree中所有MHT结点，计算存储空间。
+        // 若是叶结点且match，包含lchild, rchild, value, acc, ---> 48 bytes
+        // 若是非叶结点且match，包含lchild, rchild, acc ---> 40 bytes
+        // 若 not match，包含acc, digest ---> 64 bytes
+        for(int i = 0; i<mhtproof.subtree.size(); i++){
+            // match
+            if(mhtproof.proof.find(i) == mhtproof.proof.end()){
+                MHTNode& node = mhtproof.subtree[i];
+                // 叶结点
+                if(node.isLeaf){
+                    total_size += 48;
+                }
+                else{
+                    total_size += 40;
+                }
+            }
+
+            // not match
+            else{
+                total_size += 64;
+            }
+        }
+
+
+        // 对所有non-membership proof，计算存储空间，主要是两个大整数对应的字符串
+        for(std::pair<int, Nonmembership_Proof> nmproof: mhtproof.proof){
+            total_size = total_size + nmproof.second.a.length() + nmproof.second.d.length();
+        }
+    }
+
+    return total_size;
 }
