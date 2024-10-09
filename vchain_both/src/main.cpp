@@ -48,11 +48,11 @@ int main(void){
 
 
     // // 从数据集Gplus，测试Query时间
-    // std::string filename = "../../dataset/dataset2.txt";
-    // experiment exp(filename);
-    // std::vector<int> tw_size = {5000, 10000, 15000, 20000, 25000};
-    // std::vector<int> K_list = {20};
-    // exp.test_query(500, tw_size, K_list, "116807883656585676940");
+    std::string filename = "../../dataset/dataset2.txt";
+    experiment exp(filename);
+    std::vector<int> tw_size = {5000, 10000, 15000, 20000, 25000};
+    std::vector<int> K_list = {20};
+    exp.test_query(500, tw_size, K_list, "116807883656585676940");
 
 
     // std::string filename = "../../dataset/dataset2.txt";

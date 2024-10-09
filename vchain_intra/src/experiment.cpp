@@ -305,7 +305,7 @@ int experiment::test_VO_size(Response& response){
         MHTProof& mhtproof = pf.second;
         
         // 对subtree中所有MHT结点，计算存储空间。
-        // 若是叶结点且match，包含lchild, rchild, value, acc, ---> 48 bytes
+        // 若是叶结点且match，包含value, acc, ---> 
         // 若是非叶结点且match，包含lchild, rchild, acc ---> 40 bytes
         // 若 not match，包含acc, digest ---> 64 bytes
         for(int i = 0; i<mhtproof.subtree.size(); i++){
@@ -314,7 +314,7 @@ int experiment::test_VO_size(Response& response){
                 MHTNode& node = mhtproof.subtree[i];
                 // 叶结点
                 if(node.isLeaf){
-                    total_size += 48;
+                    total_size = total_size + 36 + node.value.first.length();
                 }
                 else{
                     total_size += 40;

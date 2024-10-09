@@ -4,7 +4,7 @@
 #include <vector>
 #include <queue>
 #include <map>
-#include "Structs.h"
+#include "../include/Structs.h"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -13,6 +13,7 @@
 #include <random>       // for std::default_random_engine
 #include <chrono>
 #include "../include/Block.h"
+#include "../include/Query.h"
 
 
 
@@ -244,4 +245,97 @@ void experiment::test_mining(int txs_in_one_block){
     std::chrono::duration<double> duration = end - start;
     // 输出执行时间
     std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
+}
+
+
+
+void experiment::test_query(int txs_in_one_block, std::vector<int> tw_size, std::vector<int> K_list, 
+                            std::string u_q){
+    std::vector<Block> blockchain = Block::construct_chain(transactions, txs_in_one_block);
+    std::string type_q = "friend";
+    std::chrono::_V2::system_clock::time_point start, end;
+    std::chrono::duration<double> duration;
+
+    // 对不同组合的参数进行测试
+    for(int tw: tw_size){
+        for(int K: K_list) {
+            // Search
+            start = std::chrono::high_resolution_clock::now();
+
+            int lb = 0;
+            int ub = tw-1;
+            Response response = Query::Search(u_q, type_q, K, lb, ub, blockchain);
+
+            end = std::chrono::high_resolution_clock::now();
+            duration = end - start;
+            // 查询时间
+            std::cout << "Search Duration: " << duration.count() << " seconds" << std::endl;
+
+
+            // VO Size, KB
+            double vo_size = double(test_VO_size(response)) / double(1024);
+            std::cout << "VO Size: " << vo_size << std::endl;
+
+
+            // Verify
+            start = std::chrono::high_resolution_clock::now();
+
+            Query::Verify(u_q, type_q, response, K, lb, ub, blockchain);
+
+            end = std::chrono::high_resolution_clock::now();
+            duration = end - start;
+            // 验证时间
+            std::cout << "Verify Duration: " << duration.count() << " seconds" << std::endl;
+        }
+    }
+
+}
+
+
+
+int experiment::test_VO_size(Response& response){
+    // 每个区块的查询结果R
+    std::map<int, std::vector<ListNode>>& R = response.R;
+    // 每个区块中com_key_q的存在/不存在证明
+    std::map<int, SMTProof>& VO = response.VO;
+
+    // 总的存储空间
+    int total_size = 0;
+
+    // 计算VO SIZE
+    for(std::pair<int, SMTProof> pf: VO){
+        std::vector<SMTNode>& subtree = pf.second.subtree;
+        
+        // 对subtree中所有SMT结点，计算存储空间。
+        // 若是叶结点，包含com_key, l, h1 ---> 
+        // 若是非叶结点，包含lchild, rchild, lhash, rhash --->
+        for(SMTNode node: subtree){
+            if(node.isLeaf){
+                total_size = total_size + 36 + node.compound_key.first.length() + node.compound_key.second.length();
+            }
+            else{
+                if(node.lchild == -1){
+                    total_size += 32;
+                }
+                else{
+                    total_size += 4;
+                }
+                if(node.rchild == -1){
+                    total_size += 32;
+                }
+                else{
+                    total_size += 4;
+                }
+            }
+        }
+    }
+
+    // 计算R size
+    for(std::pair<int, std::vector<ListNode>> pf: R){
+        for(ListNode node: pf.second){
+            total_size = total_size + node.v.length() + 4 + 32;
+        }
+    }
+
+    return total_size;
 }

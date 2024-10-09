@@ -306,13 +306,24 @@ int experiment::test_VO_size(Response& response){
         
         // 对subtree中所有SMT结点，计算存储空间。
         // 若是叶结点，包含com_key, l, h1 ---> 
-        // 若是非叶结点，包含lchild, rchild, lhash, rhash --->72 bytes
+        // 若是非叶结点，包含lchild, rchild, lhash, rhash --->
         for(SMTNode node: subtree){
             if(node.isLeaf){
-                total_size = total_size + 36 + node.compound_key.first.length() + node.compound_key.first.length();
+                total_size = total_size + 36 + node.compound_key.first.length() + node.compound_key.second.length();
             }
             else{
-                total_size = total_size + 72;
+                if(node.lchild == -1){
+                    total_size += 32;
+                }
+                else{
+                    total_size += 4;
+                }
+                if(node.rchild == -1){
+                    total_size += 32;
+                }
+                else{
+                    total_size += 4;
+                }
             }
         }
 
@@ -323,7 +334,7 @@ int experiment::test_VO_size(Response& response){
     for(std::pair<int, std::vector<ListNode>> pf: R){
         for(ListNode node: pf.second){
             total_size = total_size + node.v.length() + 4 + 32;
-        }        
+        }
     }
 
     return total_size;
