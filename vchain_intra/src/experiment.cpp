@@ -239,11 +239,18 @@ experiment::experiment(std::string filename){
 
 void experiment::test_mining(int txs_in_one_block){
     auto start = std::chrono::high_resolution_clock::now();
-    Block::construct_chain(transactions, txs_in_one_block);
+    std::vector<Block> blockchain = Block::construct_chain(transactions, txs_in_one_block);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
     // 输出执行时间
     std::cout << "Mining Duration: " << duration.count() << " seconds" << std::endl;
+
+    // 区块中ADS的平均大小/KB
+    int total_size = 0;
+    for(int i=100; i<=300; i++){
+        total_size = total_size + test_ADS_size(blockchain[i]);
+    }
+    std::cout << "ADS SIZE:" << (double)total_size/(double)(200*1024)<<std::endl;
 }
 
 
@@ -332,6 +339,32 @@ int experiment::test_VO_size(Response& response){
         for(std::pair<int, Nonmembership_Proof> nmproof: mhtproof.proof){
             total_size = total_size + nmproof.second.a.length() + nmproof.second.d.length();
         }
+    }
+
+    return total_size;
+}
+
+
+
+
+int experiment::test_ADS_size(Block blk){
+    MHT& mht = blk.mht;
+    std::vector<MHTNode>& tree = mht.tree;
+    int total_size = 0;
+
+    for(MHTNode node : tree){
+        if(node.isLeaf){
+            total_size = total_size + node.value.first.length() + 4;
+        }
+        else{
+            total_size += 64;
+        }
+
+        for(auto pair: node.com_key_set){
+            total_size = total_size + pair.first.length() + pair.second.length();
+        }
+
+        total_size = total_size + 32;
     }
 
     return total_size;

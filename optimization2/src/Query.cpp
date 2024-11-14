@@ -142,12 +142,11 @@ Response Query::Search(std::string u_q, std::string type_q, int K, int lb, int u
 
     // 第二遍扫描，对包含com_key_q的块扫描，得到每个块应当返回的listnode
     // 为了防止list有多个相同的w，每当list中的元素属于全局top-k时，将全局top-k中相应的元素删除
-    for(int blk_id = lb; blk_id <= ub; blk_id++){
-    // for(std::set<int>::iterator it = candidate_blk_ids.begin(); it!= candidate_blk_ids.end(); it++){
+    for(int blk_id = ub; blk_id >=lb; blk_id--){
         if(candidate_blk_ids.find(blk_id) == candidate_blk_ids.end()){
             continue;
         }
-        
+
         // 当前区块的list
         std::vector<ListNode>& list = chain[blk_id].Lists[com_key_q];
         std::vector<ListNode> v;            // 储存结果

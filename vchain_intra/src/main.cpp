@@ -16,10 +16,10 @@ int main(void){
     // experiment exp(filename);
     // exp.test_mining(150);
 
-    // // 测试出块时间，使用GPLUS数据集
-    // std::string filename = "../../dataset/dataset2.txt";
-    // experiment exp(filename);
-    // exp.test_mining(500);
+    // 测试出块时间，使用GPLUS数据集
+    std::string filename = "../../dataset/dataset2.txt";
+    experiment exp(filename);
+    exp.test_mining(500);
 
     // // 数据集 wiki，测试出块时间
     // std::string filename = "../../dataset/dataset3.txt";

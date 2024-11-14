@@ -242,11 +242,18 @@ experiment::experiment(std::string filename){
 void experiment::test_mining(int txs_in_one_block){
     auto start = std::chrono::high_resolution_clock::now();
     MPT mpt;
-    Block::construct_chain(transactions, txs_in_one_block, mpt);
+    std::vector<Block> blockchain = Block::construct_chain(transactions, txs_in_one_block, mpt);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
     // 输出执行时间
     std::cout << "Duration: " << duration.count() << " seconds" << std::endl;
+
+    // 区块中ADS的平均大小/KB
+    int total_size = 0;
+    for(int i=100; i<=300; i++){
+        total_size = total_size + test_ADS_size(blockchain[i]);
+    }
+    std::cout << "ADS SIZE:" << (double)total_size/(double)(200*1024)<<std::endl;
 }
 
 
@@ -260,19 +267,23 @@ void experiment::test_query(int txs_in_one_block, std::vector<int> tw_size, std:
     std::chrono::duration<double> duration;
 
     // 对不同组合的参数进行测试
+    
     for(int tw: tw_size){
+        int lb = 0;
+        int ub = tw-1;
+        Response response;
         for(int K: K_list) {
             // Search
             start = std::chrono::high_resolution_clock::now();
 
-            int lb = 0;
-            int ub = tw-1;
-            Response response = Query::Search(u_q, type_q, K, lb, ub, blockchain, mpt);
-
+            for(int x=0;x<50;x++){
+                response = Query::Search(u_q, type_q, K, lb, ub, blockchain, mpt);
+            }
+        
             end = std::chrono::high_resolution_clock::now();
             duration = end - start;
             // 查询时间
-            std::cout << "Search Duration: " << duration.count() << " seconds" << std::endl;
+            std::cout << "Search Duration: " << duration.count()/50 << " seconds" << std::endl;
 
 
             // VO Size, KB
@@ -283,12 +294,14 @@ void experiment::test_query(int txs_in_one_block, std::vector<int> tw_size, std:
             // Verify
             start = std::chrono::high_resolution_clock::now();
 
-            Query::Verify(u_q, type_q, response, K, lb, ub, blockchain);
+            for(int x=0; x<50; x++){
+                Query::Verify(u_q, type_q, response, K, lb, ub, blockchain);
+            }
 
             end = std::chrono::high_resolution_clock::now();
             duration = end - start;
             // 验证时间
-            std::cout << "Verify Duration: " << duration.count() << " seconds" << std::endl;
+            std::cout << "Verify Duration: " << duration.count()/50 << " seconds" << std::endl;
         }
     }
 
@@ -351,6 +364,34 @@ int experiment::test_VO_size(Response& response){
         total_size = total_size + 4*1 + (VO2.subtree.size()-1) * (4 + 12*32);
     }
     
+
+    return total_size;
+}
+
+
+int experiment::test_ADS_size(Block blk){
+    std::vector<struct SMTNode>& tree = blk.smt.tree;
+    std::map<std::pair<std::string, std::string>, std::vector<struct ListNode>>& Lists = blk.Lists;
+    int total_size = 0;
+
+    // 计算SMT的大小
+    for(SMTNode node: tree){
+        if(node.isLeaf){
+            total_size = total_size + node.compound_key.first.length() + node.compound_key.second.length() + 32 +4;
+        }
+        else{
+            total_size += 64;
+        }
+    }
+
+
+    // 计算Lists的大小
+    for(auto pair: Lists){
+        std::vector<struct ListNode>& vec = pair.second;
+        for(auto node: vec){
+            total_size = total_size + node.v.length() + 4 + 32;
+        }
+    }
 
     return total_size;
 }

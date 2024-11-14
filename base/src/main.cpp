@@ -58,11 +58,11 @@ int main(void){
     // exp.test_query(500, tw_size, K_list, "116807883656585676940");
 
 
-    // std::string filename = "../../dataset/dataset2.txt";
-    // experiment exp(filename);
-    // std::vector<int> tw_size = {25000};
-    // std::vector<int> K_list = {4, 8, 12, 16, 20};
-    // exp.test_query(500, tw_size, K_list, "116807883656585676940");
+    std::string filename = "../../dataset/dataset2.txt";
+    experiment exp(filename);
+    std::vector<int> tw_size = {25000};
+    std::vector<int> K_list = {4, 8, 12, 16, 20};
+    exp.test_query(500, tw_size, K_list, "116807883656585676940");
 
 
     // // 从数据集wiki，测试Query时间
@@ -72,9 +72,9 @@ int main(void){
     // std::vector<int> K_list = {20};
     // exp.test_query(100, tw_size, K_list, "1133");
 
-    std::string filename = "../../dataset/dataset3.txt";
-    experiment exp(filename);
-    std::vector<int> tw_size = {1000};
-    std::vector<int> K_list = {4, 8, 12, 16, 20};
-    exp.test_query(100, tw_size, K_list, "1133");
+    // std::string filename = "../../dataset/dataset3.txt";
+    // experiment exp(filename);
+    // std::vector<int> tw_size = {1000};
+    // std::vector<int> K_list = {4, 8, 12, 16, 20};
+    // exp.test_query(100, tw_size, K_list, "1133");
 }

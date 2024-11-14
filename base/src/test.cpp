@@ -10,22 +10,22 @@
 
 
 /*-------------------------------- 调整数据集 --------------------------------------*/ 
-// int main(void){
-//     // std::string source = "../../dataset/Email-Enron.txt";
-//     // std::string target = "../../dataset/dataset1.txt";
-//     // experiment::adjust_dataset(source, 8, 200, target);
+int main(void){
+    // std::string source = "../../dataset/Email-Enron.txt";
+    // std::string target = "../../dataset/dataset1.txt";
+    // experiment::adjust_dataset(source, 8, 200, target);
 
-//     std::string source = "../../dataset/gplus_combined.txt";
-//     std::string target = "../../dataset/dataset2.txt";
-//     // 过滤重复的edge
-//     // experiment::filterate("../../dataset/gplus_combined.txt");
+    std::string source = "../../dataset/gplus_combined.txt";
+    std::string target = "../../dataset/dataset2.txt";
+    // 过滤重复的edge
+    // experiment::filterate("../../dataset/gplus_combined.txt");
 
-//     // 输出数据集的统计信息
-//     // experiment::show_dataset("../../dataset/gplus_combined.txt", 1);
+    // 输出数据集的统计信息
+    // experiment::show_dataset("../../dataset/gplus_combined.txt", 1);
 
-//     // 调整数据集
-//     experiment::adjust_dataset(source, 8, 10000, target);
-// }
+    // 调整数据集
+    experiment::adjust_dataset(source, 20, 100000000, target);
+}
 
 
 
