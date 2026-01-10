@@ -4,19 +4,17 @@
 #include <string>
 
 
-Block::Block(std::vector<transaction>& transactions, std::string preBkHash, 
-            std::map<std::pair<std::string, std::string>, std::string>& prime_map, MultisetAccumulator& msa){
+Block::Block(std::vector<transaction>& transactions, size_t original_m_, size_t original_k_, size_t original_len_h_){
     this->transactions = transactions;
-    this->preBkHash = preBkHash;
-    this->mht = MHT(transactions, prime_map, msa);
-    this->h_mht = this->mht.tree[this->mht.root_id].digest;
+    this->preBkHash = std::string(32, '\0');
+    this->mbft = MBFT(transactions, original_m_, original_k_, original_len_h_);
+    this->h_mbft = this->mbft.tree[mbft.tree.size()-1].digest;
 }
 
 
 
-std::vector<Block> Block::construct_chain(std::vector<transaction>& transactions, int max_transactions){
-    MultisetAccumulator msa;
-    std::map<std::pair<std::string, std::string>, std::string> prime_map;
+std::vector<Block> Block::construct_chain(std::vector<transaction>& transactions, int max_transactions, 
+                                        size_t original_m_, size_t original_k_, size_t original_len_h_){
     std::vector<Block> blockchain;
     
 
@@ -37,7 +35,7 @@ std::vector<Block> Block::construct_chain(std::vector<transaction>& transactions
         }
 
         // 出块
-        Block blk(batch, std::string(32, '\0'), prime_map, msa);
+        Block blk(batch, original_m_, original_k_, original_len_h_);
         blockchain.push_back(blk);
     }
 

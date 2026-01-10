@@ -1,6 +1,9 @@
 #include "../include/MBF.h"
 #include <cassert>
 #include <iostream>
+#include "../include/Structs.h"
+#include "../include/Query.h"
+#include "../include/Block.h"
 
 
 // 测试MBF add
@@ -60,34 +63,83 @@
 
 
 // 大数据量测试merge
+// int main(void){
+//     size_t expected_elements_ = 1000;
+//     size_t m = 4096, k = 3;
+//     MBF mbf1(m, k);
+//     MBF mbf2(m, k);
+//     std::set<std::string> w_set1;
+//     std::set<std::string> w_set2;
+//     std::set<std::string> w_set3;
+//     for(size_t i=1; i<=expected_elements_; i++) {
+//         w_set1.insert(std::to_string(i));
+//         w_set2.insert(std::to_string(i+500));
+//         w_set3.insert(std::to_string(i));
+//         w_set3.insert(std::to_string(i+500));
+//     }
+//     mbf1.add(w_set1);
+//     mbf2.add(w_set2);
+    
+//     MBF mbf3(2*m, k);
+//     mbf3.add(w_set3);
+
+//     std::vector<bool> hint = mbf3.gen_hint();
+
+//     MBF mbf4(2*m, k);
+//     mbf4.merge(mbf1, mbf2, hint);        // 检查合并后的MBF是否正确
+    
+
+//     for(size_t i=0; i<mbf3.bits_.size(); i++){
+//         assert(mbf3.bits_[i] == mbf4.bits_[i]);
+//     }
+//     std::cout << "PASS\n";
+// }
+
+
+
+
+/*------------------------------- MaxSearch功能测试 ---------------------------------------*/
 int main(void){
-    size_t expected_elements_ = 1000;
-    size_t m = 4096, k = 3;
-    MBF mbf1(m, k);
-    MBF mbf2(m, k);
-    std::set<std::string> w_set1;
-    std::set<std::string> w_set2;
-    std::set<std::string> w_set3;
-    for(size_t i=1; i<=expected_elements_; i++) {
-        w_set1.insert(std::to_string(i));
-        w_set2.insert(std::to_string(i+500));
-        w_set3.insert(std::to_string(i));
-        w_set3.insert(std::to_string(i+500));
-    }
-    mbf1.add(w_set1);
-    mbf2.add(w_set2);
+    std::cout<<"-----------------------test-----------------------------"<<std::endl;
+
+    /*-------------------------- 数据集 -------------------------------------*/
+    std::vector<transaction> transactions;
     
-    MBF mbf3(2*m, k);
-    mbf3.add(w_set3);
-
-    std::vector<bool> hint = mbf3.gen_hint();
-
-    MBF mbf4(2*m, k);
-    mbf4.merge(mbf1, mbf2, hint);        // 检查合并后的MBF是否正确
+    transactions.push_back(transaction("a", "c", "friend", 18));
+    transactions.push_back(transaction("c", "d", "friend", 20));
+    transactions.push_back(transaction("a", "b", "friend", 20));
+    transactions.push_back(transaction("a", "d", "friend", 10));
+    transactions.push_back(transaction("c", "e", "friend", 9));
+    transactions.push_back(transaction("a", "b", "family", 30));
+    transactions.push_back(transaction("a", "e", "family", 20));
+    transactions.push_back(transaction("b", "e", "family", 40));
+    transactions.push_back(transaction("a", "e", "colleague", 3));
+    transactions.push_back(transaction("e", "b", "colleague", 10));
+    transactions.push_back(transaction("b", "d", "colleague", 18));
+    transactions.push_back(transaction("a", "d", "colleague", 8));
+    transactions.push_back(transaction("d", "a", "colleague", 9));
+    transactions.push_back(transaction("d", "e", "colleague", 7));
     
 
-    for(size_t i=0; i<mbf3.bits_.size(); i++){
-        assert(mbf3.bits_[i] == mbf4.bits_[i]);
+    
+
+    /*-------------------------- 出块 ----------------------------------------*/
+    std::vector<Block> blockchain = Block::construct_chain(transactions, 3, 16, 3, 4);
+    
+
+    /*--------------------------- 查询 ----------------------------------------*/
+    std::set<std::string> w_q = {"a", "friend"};
+    int K=1;
+    int lb = 0;
+    int ub = 0;
+    double alpha = 0;
+    double beta = 10000000;
+
+    std::map<size_t, std::vector<MBFT_Node>> VO = Query::MaxSearch(w_q, alpha, beta, lb, ub, blockchain);
+    MBFT_Node target_node = Query::MaxVerify(w_q, alpha, beta, lb, ub, blockchain,  VO);
+
+    for(std::string kw : target_node.w_set){
+        std::cout << kw << " ";
     }
-    std::cout << "PASS\n";
+    std::cout << target_node.v << " " << target_node.l << std::endl;
 }

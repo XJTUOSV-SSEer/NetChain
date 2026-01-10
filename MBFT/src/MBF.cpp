@@ -24,7 +24,7 @@ size_t MBF::nthHash(size_t n, size_t hashA, size_t hashB)
 }
 
 
-MBF::MBF(size_t m_, size_t k_) : m_(m_), k_(k_) {
+MBF::MBF(size_t m_, size_t k_, size_t len_h_) : m_(m_), k_(k_), len_h_(len_h_) {
     this->bits_.resize(2*m_, false);
 
     // 计算动态哈希位数，即log(m_)

@@ -19,7 +19,7 @@ public:
     size_t len_h_;                // 动态哈希的选取位数
     std::vector<bool> bits_;      // MBF，长度为2*m_
 
-    MBF(size_t m_, size_t k_);
+    MBF(size_t m_, size_t k_, size_t len_h_);
 
     /*
         将一个关键字集合插入MBF
