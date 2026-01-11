@@ -197,7 +197,16 @@ bool MBFT::dfs(size_t current_idx, std::set<std::string> w_q, double alpha, doub
             is_match = false;
             break;
         }
-    }    
+    }
+    // 若MBF检查通过且当前结点为叶结点，进一步检查关键字集合，避免假阳性
+    if(is_match && current_node.is_leaf) {
+        for(std::string kw : w_q) {
+            if(current_node.w_set.find(kw) == current_node.w_set.end()){
+                is_match = false;
+                break;
+            }
+        }
+    }
     // 检查数值条件
     if(is_match){
         double a = std::max(alpha, current_node.l);

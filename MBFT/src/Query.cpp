@@ -27,7 +27,7 @@ std::map<size_t, std::vector<MBFT_Node>> Query::MaxSearch(std::set<std::string>&
 
 
 
-MBFT_Node Query::MaxVerify(std::set<std::string>& w_q, double alpha, double beta,
+MBFT_Node* Query::MaxVerify(std::set<std::string>& w_q, double alpha, double beta,
                                                                 size_t lb, size_t ub, std::vector<Block>& chain, std::map<size_t, std::vector<MBFT_Node>>& VO){
     double current_alpha = alpha;
     double current_beta = beta;
@@ -50,7 +50,7 @@ MBFT_Node Query::MaxVerify(std::set<std::string>& w_q, double alpha, double beta
     }
 
     // 返回查询结果
-    return *target_obj;
+    return target_obj;
 }
 
 
@@ -91,7 +91,16 @@ bool Query::dfs(size_t current_idx, std::set<std::string> w_q, double alpha, dou
             is_match = false;
             break;
         }
-    }    
+    }
+    // 若MBF检查通过，进一步检查关键字集合，避免假阳性
+    if(is_match && current_node.is_leaf) {
+        for(std::string kw : w_q) {
+            if(current_node.w_set.find(kw) == current_node.w_set.end()){
+                is_match = false;
+                break;
+            }
+        }
+    }
     // 检查数值条件
     if(is_match){
         double a = std::max(alpha, current_node.l);

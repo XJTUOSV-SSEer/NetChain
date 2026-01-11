@@ -21,6 +21,9 @@ public:
 
     MBF(size_t m_, size_t k_, size_t len_h_);
 
+
+    MBF();
+
     /*
         将一个关键字集合插入MBF
     */

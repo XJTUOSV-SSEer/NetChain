@@ -192,3 +192,8 @@ std::string MBF::bin_form()
     s.assign(reinterpret_cast<const char*>(result.data()), result.size());
     return s;
 }
+
+
+MBF::MBF(){
+
+}

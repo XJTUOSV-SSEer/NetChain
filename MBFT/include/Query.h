@@ -19,7 +19,10 @@ public:
     static std::map<size_t, std::vector<MBFT_Node>> MaxSearch(std::set<std::string>& w_q, double alpha, double beta,
                                                                 size_t lb, size_t ub, std::vector<Block>& chain);
 
-    static MBFT_Node MaxVerify(std::set<std::string>& w_q, double alpha, double beta,
+    /*
+        验证并返回匹配对象的指针。若指针为nullptr，则说明不存在匹配结果。
+    */
+    static MBFT_Node* MaxVerify(std::set<std::string>& w_q, double alpha, double beta,
                                                                 size_t lb, size_t ub, std::vector<Block>& chain, std::map<size_t, std::vector<MBFT_Node>>& VO);
 
     /*

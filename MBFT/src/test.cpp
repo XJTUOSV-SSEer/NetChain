@@ -4,6 +4,9 @@
 #include "../include/Structs.h"
 #include "../include/Query.h"
 #include "../include/Block.h"
+#include <fstream>
+#include <sstream>
+#include <random>
 
 
 // 测试MBF add
@@ -99,47 +102,129 @@
 
 
 /*------------------------------- MaxSearch功能测试 ---------------------------------------*/
-int main(void){
-    std::cout<<"-----------------------test-----------------------------"<<std::endl;
+// int main(void){
+//     std::cout<<"-----------------------test-----------------------------"<<std::endl;
 
-    /*-------------------------- 数据集 -------------------------------------*/
-    std::vector<transaction> transactions;
+//     /*-------------------------- 数据集 -------------------------------------*/
+//     std::vector<transaction> transactions;
     
-    transactions.push_back(transaction("a", "c", "friend", 18));
-    transactions.push_back(transaction("c", "d", "friend", 20));
-    transactions.push_back(transaction("a", "b", "friend", 20));
-    transactions.push_back(transaction("a", "d", "friend", 10));
-    transactions.push_back(transaction("c", "e", "friend", 9));
-    transactions.push_back(transaction("a", "b", "family", 30));
-    transactions.push_back(transaction("a", "e", "family", 20));
-    transactions.push_back(transaction("b", "e", "family", 40));
-    transactions.push_back(transaction("a", "e", "colleague", 3));
-    transactions.push_back(transaction("e", "b", "colleague", 10));
-    transactions.push_back(transaction("b", "d", "colleague", 18));
-    transactions.push_back(transaction("a", "d", "colleague", 8));
-    transactions.push_back(transaction("d", "a", "colleague", 9));
-    transactions.push_back(transaction("d", "e", "colleague", 7));
+//     transactions.push_back(transaction("a", "c", "friend", 18));
+//     transactions.push_back(transaction("c", "d", "friend", 20));
+//     transactions.push_back(transaction("a", "b", "friend", 20));
+//     transactions.push_back(transaction("a", "d", "friend", 10));
+//     transactions.push_back(transaction("c", "e", "friend", 9));
+//     transactions.push_back(transaction("a", "b", "family", 30));
+//     transactions.push_back(transaction("a", "e", "family", 20));
+//     transactions.push_back(transaction("b", "e", "family", 40));
+//     transactions.push_back(transaction("a", "e", "colleague", 3));
+//     transactions.push_back(transaction("e", "b", "colleague", 10));
+//     transactions.push_back(transaction("b", "d", "colleague", 18));
+//     transactions.push_back(transaction("a", "d", "colleague", 8));
+//     transactions.push_back(transaction("d", "a", "colleague", 9));
+//     transactions.push_back(transaction("d", "e", "colleague", 7)); 
+
+//     /*-------------------------- 出块 ----------------------------------------*/
+//     std::vector<Block> blockchain = Block::construct_chain(transactions, 6, 16, 3, 4);
     
+//     /*--------------------------- 查询 ----------------------------------------*/
+//     std::set<std::string> w_q = {"a", "friend"};
+//     int lb = 0;
+//     int ub = 2;
+//     double alpha = 0;
+//     double beta = 10000000;
 
-    
+//     std::map<size_t, std::vector<MBFT_Node>> VO = Query::MaxSearch(w_q, alpha, beta, lb, ub, blockchain);
+//     MBFT_Node target_node = Query::MaxVerify(w_q, alpha, beta, lb, ub, blockchain,  VO);
 
-    /*-------------------------- 出块 ----------------------------------------*/
-    std::vector<Block> blockchain = Block::construct_chain(transactions, 3, 16, 3, 4);
-    
+//     for(std::string kw : target_node.w_set){
+//         std::cout << kw << " ";
+//     }
+//     std::cout << target_node.v << " " << target_node.l << std::endl;
+// }
 
-    /*--------------------------- 查询 ----------------------------------------*/
-    std::set<std::string> w_q = {"a", "friend"};
-    int K=1;
-    int lb = 0;
-    int ub = 0;
-    double alpha = 0;
-    double beta = 10000000;
 
-    std::map<size_t, std::vector<MBFT_Node>> VO = Query::MaxSearch(w_q, alpha, beta, lb, ub, blockchain);
-    MBFT_Node target_node = Query::MaxVerify(w_q, alpha, beta, lb, ub, blockchain,  VO);
 
-    for(std::string kw : target_node.w_set){
-        std::cout << kw << " ";
+
+
+/*-------------------------- MAXSearch多用例测试 -----------------------------------*/
+void gen_data(){
+    std::string filename = "../test_data.txt";
+    std::ofstream f(filename);
+
+    std::vector<std::string> types = {"friend", "family", "colleague"};
+    for(size_t i = 0; i < 10000; i++){
+        std::string u = std::to_string((rand() % 100)+1);
+        std::string v = std::to_string((rand() % 100)+1);
+        std::string type = types[rand() % types.size()];
+        int w = rand() % 5000;
+
+        // 交易参数写入文件
+        f << u << " " << v << " " << type << " " << w << "\n";
     }
-    std::cout << target_node.v << " " << target_node.l << std::endl;
+}
+
+int main(){
+    // 生成数据
+    // gen_data();
+
+    // 读取数据，构造交易
+    std::vector<transaction> transactions;
+    std::string filename = "../test_data.txt";
+    std::ifstream f(filename);
+    std::string line;
+    while (std::getline(f, line)) {
+        std::stringstream ss(line);
+        std::string u, v, type;
+        int w;
+        ss >> u >> v >> type >> w;
+        transactions.push_back(transaction(u, v, type, w));
+    }
+
+    /*-------------------------- 测试不同区块大小下的情况 -----------------------------------*/
+    for(size_t max_transactions = 1; max_transactions <= 1000; max_transactions ++){
+        std::vector<Block> blockchain = Block::construct_chain(transactions, max_transactions, 16, 3, 4);
+
+        std::vector<std::string> types = {"friend", "family", "colleague"};
+        // 查询，遍历所有可能的<u,type>        
+        for(size_t i = 1; i<=100; i++){
+            for(std::string type : types){
+                std::cout << "queried: " << std::to_string(i) << " " << type <<std::endl;
+                std::set<std::string> w_q;
+                w_q.insert(std::to_string(i));
+                w_q.insert(type);
+                int lb = 0;
+                int ub = blockchain.size()-1;
+                double alpha = 0;
+                double beta = 10000000;
+                std::map<size_t, std::vector<MBFT_Node>> VO = Query::MaxSearch(w_q, alpha, beta, lb, ub, blockchain);
+                MBFT_Node* target_node = Query::MaxVerify(w_q, alpha, beta, lb, ub, blockchain,  VO);
+
+                // 检查结果是否正确
+                if(target_node == nullptr){
+                    // 确认不存在满足的交易
+                    for(transaction tx : transactions){
+                        assert(tx.u != std::to_string(i) || tx.type != type);
+                    }
+                }
+                else{
+                    // 找到正确的匹配对象并对比
+                    double max_value = -1;
+                    for(transaction tx : transactions){
+                        if(tx.u == std::to_string(i) && tx.type == type){
+                            max_value = std::max(max_value, tx.w);
+                        }
+                    }
+                    assert(max_value == target_node->l);
+                    // if((double)max_value != target_node->l){
+                    //     // 检查是否发生了假阳性
+                    //     for(std::string _w : w_q){
+                    //         assert(target_node->mbf.check(_w));
+                    //     }                        
+                    // }
+                }
+            }
+        }   
+
+    }
+
 }
