@@ -137,3 +137,30 @@ bool Query::dfs(size_t current_idx, std::set<std::string> w_q, double alpha, dou
         return false;
     }
 }
+
+
+
+std::map<size_t, std::map<size_t, std::vector<MBFT_Node>>> Query::TopKSearch(std::set<std::string>& w_q, double alpha, double beta,
+                                    size_t lb, size_t ub, std::vector<Block>& chain, size_t K){
+    std::map<size_t, std::map<size_t, std::vector<MBFT_Node>>> result;
+    // 进行K轮查询
+    double current_beta = beta;
+    for(size_t i = 0; i < K; i++){
+        // 特殊情况
+        if(current_beta < alpha) {
+            break;
+        }
+        // 调用MAX查询
+        std::map<size_t, std::vector<MBFT_Node>> VO_round = MaxSearch(w_q, alpha, current_beta, lb, ub, chain);
+        result[i] = VO_round;
+        // 验证
+        MBFT_Node* node = MaxVerify(w_q, alpha, current_beta, lb, ub, chain, VO_round);
+
+        if(node == nullptr) {
+            break;
+        }
+        // 更新查询数值范围
+        current_beta = node->l - 1;
+    }
+    return result;
+}

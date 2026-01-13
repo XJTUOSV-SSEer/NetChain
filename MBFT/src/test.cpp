@@ -147,22 +147,118 @@
 
 
 /*-------------------------- MAXSearch多用例测试 -----------------------------------*/
-void gen_data(){
-    std::string filename = "../test_data.txt";
-    std::ofstream f(filename);
+// void gen_data(){
+//     std::string filename = "../test_data.txt";
+//     std::ofstream f(filename);
 
-    std::vector<std::string> types = {"friend", "family", "colleague"};
-    for(size_t i = 0; i < 10000; i++){
-        std::string u = std::to_string((rand() % 100)+1);
-        std::string v = std::to_string((rand() % 100)+1);
-        std::string type = types[rand() % types.size()];
-        int w = rand() % 5000;
+//     std::vector<std::string> types = {"friend", "family", "colleague"};
+//     for(size_t i = 0; i < 10000; i++){
+//         std::string u = std::to_string((rand() % 100)+1);
+//         std::string v = std::to_string((rand() % 100)+1);
+//         std::string type = types[rand() % types.size()];
+//         int w = rand() % 5000;
 
-        // 交易参数写入文件
-        f << u << " " << v << " " << type << " " << w << "\n";
-    }
-}
+//         // 交易参数写入文件
+//         f << u << " " << v << " " << type << " " << w << "\n";
+//     }
+// }
 
+// int main(){
+//     // 生成数据
+//     // gen_data();
+
+//     // 读取数据，构造交易
+//     std::vector<transaction> transactions;
+//     std::string filename = "../test_data.txt";
+//     std::ifstream f(filename);
+//     std::string line;
+//     while (std::getline(f, line)) {
+//         std::stringstream ss(line);
+//         std::string u, v, type;
+//         int w;
+//         ss >> u >> v >> type >> w;
+//         transactions.push_back(transaction(u, v, type, w));
+//     }
+
+//     /*-------------------------- 测试不同区块大小下的情况 -----------------------------------*/
+//     for(size_t max_transactions = 1; max_transactions <= 1000; max_transactions ++){
+//         std::vector<Block> blockchain = Block::construct_chain(transactions, max_transactions, 16, 3, 4);
+
+//         std::vector<std::string> types = {"friend", "family", "colleague"};
+//         // 查询，遍历所有可能的<u,type>        
+//         for(size_t i = 1; i<=100; i++){
+//             for(std::string type : types){
+//                 std::cout << "queried: " << std::to_string(i) << " " << type <<std::endl;
+//                 std::set<std::string> w_q;
+//                 w_q.insert(std::to_string(i));
+//                 w_q.insert(type);
+//                 int lb = 0;
+//                 int ub = blockchain.size()-1;
+//                 double alpha = 0;
+//                 double beta = 10000000;
+//                 std::map<size_t, std::vector<MBFT_Node>> VO = Query::MaxSearch(w_q, alpha, beta, lb, ub, blockchain);
+//                 MBFT_Node* target_node = Query::MaxVerify(w_q, alpha, beta, lb, ub, blockchain,  VO);
+
+//                 // 检查结果是否正确
+//                 if(target_node == nullptr){
+//                     // 确认不存在满足的交易
+//                     for(transaction tx : transactions){
+//                         assert(tx.u != std::to_string(i) || tx.type != type);
+//                     }
+//                 }
+//                 else{
+//                     // 找到正确的匹配对象并对比
+//                     double max_value = -1;
+//                     for(transaction tx : transactions){
+//                         if(tx.u == std::to_string(i) && tx.type == type){
+//                             max_value = std::max(max_value, tx.w);
+//                         }
+//                     }
+//                     assert(max_value == target_node->l);
+//                     // if((double)max_value != target_node->l){
+//                     //     // 检查是否发生了假阳性
+//                     //     for(std::string _w : w_q){
+//                     //         assert(target_node->mbf.check(_w));
+//                     //     }                        
+//                     // }
+//                 }
+//             }
+//         }   
+
+//     }
+
+// }
+
+
+
+/*-------------------------- Top-K-Search单用例测试 -----------------------------------*/
+// int main(void){
+//     // 读取数据，构造交易
+//     std::vector<transaction> transactions;
+//     std::string filename = "../test_data.txt";
+//     std::ifstream f(filename);
+//     std::string line;
+//     while (std::getline(f, line)) {
+//         std::stringstream ss(line);
+//         std::string u, v, type;
+//         int w;
+//         ss >> u >> v >> type >> w;
+//         transactions.push_back(transaction(u, v, type, w));
+//     }
+//     size_t max_transactions = 50;
+//     size_t K = 19;
+//     std::vector<Block> blockchain = Block::construct_chain(transactions, max_transactions, 16, 3, 4);
+//     std::set<std::string> w_q = {"1", "family"};
+//     int lb = 0;
+//     int ub = blockchain.size()-1;
+//     double alpha = 0;
+//     double beta = 10000000;
+//     Query::TopKSearch(w_q, alpha, beta, lb, ub, blockchain, K);
+// }
+
+
+
+/*-------------------------- Top-K-Search多用例测试 -----------------------------------*/
 int main(){
     // 生成数据
     // gen_data();
@@ -185,46 +281,25 @@ int main(){
         std::vector<Block> blockchain = Block::construct_chain(transactions, max_transactions, 16, 3, 4);
 
         std::vector<std::string> types = {"friend", "family", "colleague"};
+        // 测试参数K：2-64
         // 查询，遍历所有可能的<u,type>        
-        for(size_t i = 1; i<=100; i++){
-            for(std::string type : types){
-                std::cout << "queried: " << std::to_string(i) << " " << type <<std::endl;
-                std::set<std::string> w_q;
-                w_q.insert(std::to_string(i));
-                w_q.insert(type);
-                int lb = 0;
-                int ub = blockchain.size()-1;
-                double alpha = 0;
-                double beta = 10000000;
-                std::map<size_t, std::vector<MBFT_Node>> VO = Query::MaxSearch(w_q, alpha, beta, lb, ub, blockchain);
-                MBFT_Node* target_node = Query::MaxVerify(w_q, alpha, beta, lb, ub, blockchain,  VO);
-
-                // 检查结果是否正确
-                if(target_node == nullptr){
-                    // 确认不存在满足的交易
-                    for(transaction tx : transactions){
-                        assert(tx.u != std::to_string(i) || tx.type != type);
-                    }
+        for(size_t K=2; K <= 64; K++){
+            for(size_t i = 1; i<=100; i++){
+                for(std::string type : types){
+                    std::set<std::string> w_q;
+                    w_q.insert(std::to_string(i));
+                    w_q.insert(type);
+                    int lb = 0;
+                    int ub = blockchain.size()-1;
+                    double alpha = 0;
+                    double beta = 10000000;
+                    Query::TopKSearch(w_q, alpha, beta, lb, ub, blockchain, K);
+                    std::cout << "max_txs:" << max_transactions << " queried: " << std::to_string(i) << " " 
+                                                                        << type << " K:" << K << std::endl;
                 }
-                else{
-                    // 找到正确的匹配对象并对比
-                    double max_value = -1;
-                    for(transaction tx : transactions){
-                        if(tx.u == std::to_string(i) && tx.type == type){
-                            max_value = std::max(max_value, tx.w);
-                        }
-                    }
-                    assert(max_value == target_node->l);
-                    // if((double)max_value != target_node->l){
-                    //     // 检查是否发生了假阳性
-                    //     for(std::string _w : w_q){
-                    //         assert(target_node->mbf.check(_w));
-                    //     }                        
-                    // }
-                }
-            }
-        }   
-
+            }   
+        }
     }
-
 }
+
+
