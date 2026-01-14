@@ -36,7 +36,7 @@ bool BloomFilter::check(const unsigned char* data, size_t len)
 {
     std::array<uint64_t, 2> hashValues = hash((uint8_t*)data, (std::size_t)len);
 
-    for (size_t n = 0; n < m_; n++)
+    for (size_t n = 0; n < k_; n++)
     {
         // 只要有一个位置为0，就是阴性
         if (!bits_[nthHash(n, (int)hashValues[0], (int)hashValues[1]) % m_])

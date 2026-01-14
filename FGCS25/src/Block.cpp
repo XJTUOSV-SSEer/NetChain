@@ -37,8 +37,8 @@ Block::Block(std::vector<transaction>& transactions, size_t m_, size_t k_,
         int c1 = i - (1 << (j-1));      // 第i-2^(j-1)个块
         int c2 = i - (1 << j);          // 第i-2^j个块
         // 若块号i-2^(j-1) < 0，则使用空BF代为计算
-        BloomFilter bf_c1 = (c1 >= 0) ? blockchain[c1].bf : BloomFilter(m_, k_);
-        BloomFilter bf_c2 = (c2 >= 0) ? blockchain[c2].bf : BloomFilter(m_, k_);
+        BloomFilter bf_c1 = (c1 >= 0) ? blockchain[c1].skip_index[j-1] : BloomFilter(m_, k_);
+        BloomFilter bf_c2 = (c2 >= 0) ? blockchain[c2].skip_index[j-1] : BloomFilter(m_, k_);
 
         // 两个子BF进行merge得到skip index中第j个BF
         this->skip_index[j] = BloomFilter(m_, k_);
