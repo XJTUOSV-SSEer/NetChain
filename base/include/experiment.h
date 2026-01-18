@@ -58,6 +58,17 @@ public:
 
 
     /*
+        将paysim数据集中的账户交易信息转换为交易，并储存在target_file中
+    */
+    static void process_paysim_dataset(std::string filename, std::string target_file);
+
+    /*
+        对paysim数据集进行统计分析，寻找对应交易数最多的复合键
+    */
+    static void stat_paysim_dataset(std::string filename);
+
+
+    /*
         txs_in_one_block - 一个块中的交易数
     */
     void test_mining(int txs_in_one_block);

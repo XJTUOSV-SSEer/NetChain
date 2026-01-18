@@ -202,6 +202,123 @@ void experiment::adjust_dataset(std::string filename, int seg_size, int ub, std:
 
 
 
+void experiment::process_paysim_dataset(std::string filename, std::string target_file) {
+    std::vector<transaction> transactions;
+    std::ifstream file(filename);
+
+    if (!file.is_open()) {
+        std::cerr << "无法打开文件: " << filename << std::endl;
+        return;
+    }
+
+    std::string line;
+    // 跳过表头
+    std::getline(file, line);
+
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+
+        std::stringstream ss(line);
+        std::string field;
+        std::vector<std::string> fields;
+
+        // 按逗号分割字段（简单 CSV 解析，假设无引号或换行）
+        while (std::getline(ss, field, ',')) {
+            fields.push_back(field);
+        }
+
+        // PaySim 应有 11 列
+        if (fields.size() < 11) {
+            std::cerr << "警告：跳过格式错误的行: " << line << std::endl;
+            continue;
+        }
+
+        std::string type = fields[1];          // type
+        double amount = 0;
+        try {
+            amount = std::stod(fields[2]);  // amount
+        } catch (const std::exception& e) {
+            std::cerr << "无效金额: " << fields[2] << std::endl;
+            continue;
+        }
+        std::string nameOrig = fields[3];      // nameOrig
+        std::string nameDest = fields[6];      // nameDest
+
+        transactions.push_back(transaction(nameOrig, nameDest, type, (int)amount));
+    }
+
+    file.close();
+
+
+    // 将交易写入文件
+    // 打开输出文件流
+    std::ofstream outFile(target_file);
+    if (!outFile) {
+        std::cout << "Error opening file for writing" << std::endl;
+        return;
+    }
+    for(transaction& tx : transactions) {
+        outFile << tx.u << ' '<< tx.v << ' ' << tx.type << ' ' << tx.w << '\n';
+    }
+    outFile.close();
+}
+
+
+void experiment::stat_paysim_dataset(std::string filename){
+    std::ifstream file(filename);  // 打开文件
+    std::string line;
+    std::map<std::string, int> m;
+
+    if (!file.is_open()) {
+        std::cout << "can not open file" << std::endl;
+        return;
+    }
+
+    // 逐行读取文件
+    while (std::getline(file, line)) {
+        // 跳过以 # 开头的行
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+        
+        std::istringstream iss(line);
+        std::string u, v, type;
+        int w;
+        
+        // 读取每一行中的两个整数
+        iss >> u >> v >> type >> w;
+        std::string key = u + type;
+        if(m.find(key)==m.end()){
+            m[key] = 0;
+        }
+        m[key] += 1;
+    }
+    
+    file.close();  // 关闭文件
+
+    // 将统计信息写入文件
+    std::ofstream outputfile("../../dataset/stat.txt");
+
+    for(std::map<std::string, int>::iterator it = m.begin(); it!=m.end(); it++){
+        outputfile << it->first << " " << it->second <<std::endl;
+    }
+
+    // 寻找对应最多交易的复合键
+    int max_amount = 0;
+    std::string max_key;
+    for(std::map<std::string, int>::iterator it = m.begin(); it!=m.end(); it++) {
+        if(it->second > max_amount){
+            max_key = it->first;
+            max_amount = it->second;
+        }
+    }
+    std::cout << max_key << " " << max_amount << std::endl;
+
+    return;
+}
+
+
+
 
 
 experiment::experiment(std::string filename){

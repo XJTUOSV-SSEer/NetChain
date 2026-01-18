@@ -61,6 +61,7 @@ CTestTestfile.cmake
 *.iml
 *.iws
 
+*.zip
 
 
 dataset/
