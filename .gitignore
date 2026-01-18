@@ -64,5 +64,7 @@ CTestTestfile.cmake
 *.zip
 
 
-dataset/
+dataset*.txt
+stat.txt
+*.csv
 test_data.txt
