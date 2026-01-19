@@ -65,6 +65,12 @@ CTestTestfile.cmake
 
 
 dataset*.txt
+Email-Enron.txt
+Wiki-Vote.txt
+gplus_combined.txt
+dataset/lastfm_dataset/
+loc-gowalla_edges.txt
+loc-gowalla_totalCheckins.txt
 stat.txt
 *.csv
 test_data.txt
