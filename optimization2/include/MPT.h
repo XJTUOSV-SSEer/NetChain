@@ -27,6 +27,9 @@ public:
     // 根结点在tree中的下标
     int root_id;
 
+
+    static uint8_t hash_to_0_63(const std::string& s);
+
     /*
         更新某个混合键对应的latest_blk_id
         若混合键对应的路径不存在，则创建路径

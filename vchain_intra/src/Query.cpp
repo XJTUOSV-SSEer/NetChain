@@ -58,6 +58,7 @@ std::vector<std::pair<std::string, int>> Query::verify(std::vector<Block>& block
 
     std::vector<std::pair<std::string, int>> res;           // 储存区块链中所有匹配的结果<v,w>
     // 遍历Response中每个区块对应的subtree
+    bool flag = true;
     for(int i=lb; i<=ub; i++){
         // 取出该区块对应的subtree
         MHTProof& mht_proof = response.VO[i];
@@ -66,16 +67,21 @@ std::vector<std::pair<std::string, int>> Query::verify(std::vector<Block>& block
         
         if(traverse(mht_proof.subtree, mht_proof.proof, mht_proof.root_id, res, msa, p_str) != blockchain[i].h_mht){
             std::cout << "Merkle Proof is error" << std::endl;
-            return std::vector<std::pair<std::string, int>>();
+            flag = false;
+            // return std::vector<std::pair<std::string, int>>();
         }
     }
 
     // 提取出res中的top-K
-    int num_to_be_returned = std::min(K, int(res.size()));
-    std::vector<std::pair<std::string, int>> final_result(num_to_be_returned);
-    std::partial_sort_copy(res.begin(), res.end(), final_result.begin(), final_result.end(), compare_by_w);
-
-    return final_result;
+    if(flag) {
+        int num_to_be_returned = std::min(K, int(res.size()));
+        std::vector<std::pair<std::string, int>> final_result(num_to_be_returned);
+        std::partial_sort_copy(res.begin(), res.end(), final_result.begin(), final_result.end(), compare_by_w);
+        return final_result;
+    }
+    else{
+        return std::vector<std::pair<std::string, int>>();
+    }
 }
 
 

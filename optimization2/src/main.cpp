@@ -20,59 +20,53 @@
 
 
 int main(void){
-    // // 测试出块时间，使用Enron Email数据集
-    // std::string filename = "../../dataset/dataset1.txt";
-    // experiment exp(filename);
-    // exp.test_mining(150);
-
     // // 测试出块时间，使用GPLUS数据集
+    // std::string filename = "../../dataset/dataset1.txt";
+    // experiment::test_mining(filename, 500);
+
+    // // 测试出块时间，使用paysim数据集
     // std::string filename = "../../dataset/dataset2.txt";
-    // experiment exp(filename);
-    // exp.test_mining(500);
+    // experiment::test_mining(filename, 500);
 
-    // // 数据集 wiki，测试出块时间
+    // // 测试出块时间，使用gowalla数据集
     // std::string filename = "../../dataset/dataset3.txt";
-    // experiment exp(filename);
-    // exp.test_mining(100);
+    // experiment::test_mining(filename, 500);
 
-    // // 从数据集enron email，测试Query时间
-    // std::string filename = "../../dataset/dataset1.txt";
-    // experiment exp(filename);
-    // std::vector<int> tw_size = {200, 400, 600, 800, 1000};
-    // std::vector<int> K_list = {20};
-    // exp.test_query(150, tw_size, K_list, "1028");
+    // // 测试出块时间，使用lastfm数据集
+    // std::string filename = "../../dataset/dataset4.txt";
+    // experiment::test_mining(filename, 500);
 
-    // std::string filename = "../../dataset/dataset1.txt";
-    // experiment exp(filename);
-    // std::vector<int> tw_size = {1000};
-    // std::vector<int> K_list = {4, 8, 12, 16, 20};
-    // exp.test_query(150, tw_size, K_list, "1028");
 
     // // 从数据集Gplus，测试Query时间
-    // std::string filename = "../../dataset/dataset2.txt";
-    // experiment exp(filename);
+    // std::string filename = "../../dataset/dataset1.txt";
     // std::vector<int> tw_size = {5000, 10000, 15000, 20000, 25000};
     // std::vector<int> K_list = {20};
-    // exp.test_query(500, tw_size, K_list, "116807883656585676940");
+    // experiment::test_query(filename, 500, tw_size, K_list, "1916398003", "colleague");
+
+    // // 以Gplus为例测试参数k的影响
+    // std::string filename = "../../dataset/dataset1.txt";
+    // std::vector<int> tw_size = {25000};
+    // std::vector<int> K_list = {2, 4, 6, 8, 10};
+    // experiment::test_query(filename, 500, tw_size, K_list, "1916398003", "colleague");
 
 
-    std::string filename = "../../dataset/dataset2.txt";
-    experiment exp(filename);
-    std::vector<int> tw_size = {25000};
-    std::vector<int> K_list = {4, 8, 12, 16, 20};
-    exp.test_query(500, tw_size, K_list, "116807883656585676940");
-
-
-    // // 从数据集wiki，测试Query时间
-    // std::string filename = "../../dataset/dataset3.txt";
-    // experiment exp(filename);
-    // std::vector<int> tw_size = {200, 400, 600, 800, 1000};
+    // // 从数据集paysim，测试Query时间
+    // std::string filename = "../../dataset/dataset2.txt";
+    // std::vector<int> tw_size = {2000, 4000, 6000, 8000, 10000};
     // std::vector<int> K_list = {20};
-    // exp.test_query(100, tw_size, K_list, "1133");
+    // experiment::test_query(filename, 500, tw_size, K_list, "0935995067", "PAYMENT");
 
-    // std::string filename = "../../dataset/dataset3.txt";
-    // experiment exp(filename);
-    // std::vector<int> tw_size = {1000};
-    // std::vector<int> K_list = {4, 8, 12, 16, 20};
-    // exp.test_query(100, tw_size, K_list, "1133");
+
+    // 从数据集gowalla，测试Query时间
+    std::string filename = "../../dataset/dataset3.txt";
+    std::vector<int> tw_size = {40000, 80000, 120000, 160000, 200000};
+    std::vector<int> K_list = {20};
+    experiment::test_query(filename, 500, tw_size, K_list, "2134270587", "friend");
+
+
+    // // 从数据集lastfm，测试Query时间
+    // std::string filename = "../../dataset/dataset4.txt";
+    // std::vector<int> tw_size = {700, 1400, 2100, 2800, 3500};
+    // std::vector<int> K_list = {20};
+    // experiment::test_query(filename, 500, tw_size, K_list, "0732136308", "interest");
 }

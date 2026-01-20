@@ -10,11 +10,13 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_set>
+#include <functional>
 #include <unordered_map>
 #include <cctype>
 #include <iterator>
 #include <algorithm>    // for std::shuffle
 #include <random>       // for std::default_random_engine
+#include <iomanip>
 
 
 
@@ -23,6 +25,18 @@
 
 class process_dataset{
 public:
+    /*
+        将原始的id映射为[0, 2^31-1]范围内的随机整数，作为新的统一id，并转换为长度10字节的字符串明文
+    */
+    static std::string hash_string_to_24bit(const std::string& s){
+        std::hash<std::string> hasher;
+        size_t hash_val = static_cast<uint32_t>(hasher(s)) & ((1U << 31) - 1);  // 限制在 [0, 2^31 - 1]
+        std::ostringstream oss;
+        oss << std::setw(10) << std::setfill('0') << hash_val;
+        return oss.str();
+    }
+
+
     /*
         将paysim数据集中的账户交易信息转换为交易，并储存在target_file中
         input:
@@ -77,14 +91,15 @@ public:
         }
 
         file.close();
+        std::cout << "num of accounts: " << account_set.size() << std::endl;
 
-        // 为复合键<C1231006815, PAYMENT>再生成2500条随机交易
+        // 为复合键<C1231006815, PAYMENT>再生成900条随机交易
         std::vector<std::string> account_list(account_set.begin(), account_set.end());
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_int_distribution<> dis1(0, static_cast<int>(account_list.size()) - 1);
         std::uniform_int_distribution<int> dis2(5000, 500000);
-        for(size_t i = 0; i<2500; i++) {
+        for(size_t i = 0; i<900; i++) {
             std::string nameDest = account_list[dis1(gen)];     // 随机选取一个接收账户
             int amount = dis2(gen);
             // 构造一条随机交易
@@ -136,7 +151,7 @@ public:
         }
         for(std::vector<transaction>& segment : segments) {
             for(transaction& tx : segment) {
-                outFile << tx.u << ' '<< tx.v << ' ' << tx.type << ' ' << tx.w << '\n';
+                outFile << hash_string_to_24bit(tx.u) << ' '<< hash_string_to_24bit(tx.v) << ' ' << tx.type << ' ' << tx.w << '\n';
             }
         }
         outFile.close();
@@ -147,6 +162,7 @@ public:
 
     /*
         处理email，wiki, gplus数据集，权重为均匀分布
+        边的类型可能为friend, family, colleague,
     */
     static void process_other_dataset(std::string filename, std::string target_file, size_t seg_size) {
         std::vector<transaction> transactions;
@@ -158,21 +174,28 @@ public:
         }
 
         std::string line;
+        std::vector<std::string> type_list = {"friend", "family", "colleague"};
+        int ub = 10000;
+        std::uniform_int_distribution<> dist1(0, ub);
+        std::uniform_int_distribution<> dist2(0, type_list.size() - 1);
+        
+        std::set<std::string> user_set;
         while (std::getline(file, line)) {
             if (line.empty() || line[0] == '#') continue;
 
             std::istringstream ss(line);
             std::string u, v;
-            ss >> u >> v;          
-            std::string type = "friend";          // type
-            std::random_device rd;
+            ss >> u >> v;    
+            user_set.insert(u);
+            user_set.insert(v);
+            std::random_device rd;      
             std::mt19937 gen(rd());
-            int ub = 10000;
-            std::uniform_int_distribution<> dist(0, ub);
-            int amount = dist(gen);
+            std::string type = type_list[dist2(gen)];          // type                      
+            int amount = dist1(gen);
             transactions.push_back(transaction(u, v, type, amount));
         }
         file.close();
+        std::cout << "num of users: " << user_set.size();
 
         // 根据复合键对交易分segment，然后shuffle
         std::map<std::string, std::queue<transaction>> multimap;       // 储存复合键->对应交易
@@ -214,7 +237,8 @@ public:
         }
         for(std::vector<transaction>& segment : segments) {
             for(transaction& tx : segment) {
-                outFile << tx.u << ' '<< tx.v << ' ' << tx.type << ' ' << tx.w << '\n';
+                // 将id统一编码
+                outFile << hash_string_to_24bit(tx.u) << ' '<< hash_string_to_24bit(tx.v) << ' ' << tx.type << ' ' << tx.w << '\n';
             }
         }
         outFile.close();
@@ -263,6 +287,7 @@ public:
             userLocCount[uid][pid]++;
         }
         checkinFile.close();
+        std::cout << "num of users: " << userLocCount.size() << std::endl;
 
         // 构建 location -> set<user> 的倒排索引（用于快速计算共同签到）
         std::unordered_map<std::string, std::unordered_set<std::string>> locToUsers;
@@ -274,7 +299,7 @@ public:
             }
         }
 
-        std::cout << "2" << std::endl;
+        std::cout << "num of locations: " << locToUsers.size() << std::endl;
 
         // Step 2: 读取显式 friend 边（保留方向）
         std::set<std::pair<std::string, std::string>> friendEdges; // 保留原始方向：(Ua, Ub)
@@ -323,6 +348,8 @@ public:
             // outFile << v << " " << u << " " << "friend " << weight << "\n";
         }
 
+        std::cout << "step 3.2" << std::endl;
+
         // 3.3 构建 co-interest 边（非 friend 但有共同地点）
         std::set<std::pair<std::string, std::string>, PairCompare> coInterestEdges; // 无向，自动去重
         // 遍历每个地点的用户列表
@@ -370,6 +397,8 @@ public:
             }
         }
 
+        std::cout << "step 3.3" << std::endl;
+
         // 根据复合键对交易分segment，然后shuffle
         std::map<std::string, std::queue<transaction>> multimap;       // 储存复合键->对应交易
         for(transaction& tx : transactions){
@@ -409,7 +438,7 @@ public:
         }
         for(std::vector<transaction>& segment : segments) {
             for(transaction& tx : segment) {
-                outFile << tx.u << ' '<< tx.v << ' ' << tx.type << ' ' << tx.w << '\n';
+                outFile << hash_string_to_24bit(tx.u) << ' '<< hash_string_to_24bit(tx.v) << ' ' << tx.type << ' ' << tx.w << '\n';
             }
         }
         outFile.close();
@@ -454,6 +483,7 @@ public:
             userArtistSet[u].insert(a);
         }
         fin_ua.close();
+        std::cout << "num of users: " << userArtists.size() << std::endl;
 
         // Step 2: 读取 artist_tags.dat → 构建 has_tag 边
         std::unordered_map<std::string, std::unordered_map<std::string, int>> artistTags; // Aid -> (Tid -> count)
@@ -474,6 +504,8 @@ public:
         }
         fin_at.close();
 
+        std::cout << "num of artists: " << artistTags.size() << std::endl;
+
         // 构建反向映射：tag -> set<artist>
         std::unordered_map<std::string, std::unordered_set<std::string>> tagArtists;
         for (const auto& aEntry : artistTags) {
@@ -483,6 +515,8 @@ public:
                 tagArtists[t].insert(a);
             }
         }
+
+        std::cout << "num of tags: " << tagArtists.size() << std::endl;
 
         // Step 3: 读取 user_friends.dat → 构建 friend 边（后续赋权）
         std::vector<std::pair<std::string, std::string>> rawFriendEdges; // 保留原始方向
@@ -606,7 +640,7 @@ public:
         }
         for(std::vector<transaction>& segment : segments) {
             for(transaction& tx : segment) {
-                outFile << tx.u << ' '<< tx.v << ' ' << tx.type << ' ' << tx.w << '\n';
+                outFile << hash_string_to_24bit(tx.u) << ' '<< hash_string_to_24bit(tx.v) << ' ' << tx.type << ' ' << tx.w << '\n';
             }
         }
         outFile.close();

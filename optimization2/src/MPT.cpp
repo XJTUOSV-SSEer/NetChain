@@ -1,6 +1,7 @@
 #include "../include/MPT.h"
 #include <iostream>
 #include <stack>
+#include <functional>
 
 
 int MPT::get_order(std::string s){
@@ -10,22 +11,16 @@ int MPT::get_order(std::string s){
         return int(ch-48);
     }
 
-
-
-    // 若输入type类型，如 "friend"，返回10；"family"，返回11；"colleague"，返回12
-    else if(s=="friend"){
-        return 10;
-    }
-    else if(s=="family"){
-        return 11;
-    }
-    else if(s=="colleague"){
-        return 12;
-    }
-
     return -1;
 }
 
+/*
+    将type映射为0-63的整数
+*/
+uint8_t MPT::hash_to_0_63(const std::string& s) {
+    size_t h = std::hash<std::string>{}(s);
+    return static_cast<uint8_t>(h & 63);  // 63 == 0b111111 == 2^6 - 1
+}
 
 
 
@@ -38,7 +33,9 @@ std::string MPT::update(std::pair<std::string, std::string> com_key, int blk_id)
     for(char ch: u){
         path.push_back(get_order(std::string(1, ch)));
     }
-    path.push_back(get_order(type));
+    int code_type = hash_to_0_63(type);
+    path.push_back((int)(code_type / 10));
+    path.push_back((int)(code_type % 10));
 
 
     // 按照路径寻找叶结点，若路径上某结点不存在，生成对应的新的结点加入MPT
@@ -95,11 +92,13 @@ int MPT::search(std::pair<std::string, std::string> com_key){
     std::string type = com_key.second;
 
     // 根据u和type确定混合键在MPT中的路径
-    std::vector<int> path;          // 混合键在MPT中的路径
+    std::vector<int> path;          // 计算混合键在MPT中的路径
     for(char ch: u){
         path.push_back(get_order(std::string(1, ch)));
     }
-    path.push_back(get_order(type));
+    int code_type = hash_to_0_63(type);
+    path.push_back((int)(code_type / 10));
+    path.push_back((int)(code_type % 10));
 
     // 按照路径寻找叶结点。若某结点不存在，返回-1
     int current_id = this->root_id;           // 当前结点在tree数组中的下标
@@ -126,11 +125,13 @@ MPTProof MPT::proveExistence(std::pair<std::string, std::string> com_key){
     proof.root_id = 0;
 
     // 根据u和type确定混合键在MPT中的路径
-    std::vector<int> path;          // 混合键在MPT中的路径
+    std::vector<int> path;          // 计算混合键在MPT中的路径
     for(char ch: u){
         path.push_back(get_order(std::string(1, ch)));
     }
-    path.push_back(get_order(type));
+    int code_type = hash_to_0_63(type);
+    path.push_back((int)(code_type / 10));
+    path.push_back((int)(code_type % 10));
 
     // 按照路径寻找叶结点，一边找一边将路径上的结点加入proof。若某结点不存在，报错并返回-1
     int current_id = this->root_id;           // 当前结点在tree数组中的下标
@@ -176,11 +177,13 @@ bool MPT::verifyExistence(std::pair<std::string, std::string> com_key, int lates
     // 混合键的路径
     std::string u = com_key.first;
     std::string type = com_key.second;
-    std::vector<int> path;          // 混合键在MPT中的路径
+    std::vector<int> path;          // 计算混合键在MPT中的路径
     for(char ch: u){
         path.push_back(get_order(std::string(1, ch)));
     }
-    path.push_back(get_order(type));
+    int code_type = hash_to_0_63(type);
+    path.push_back((int)(code_type / 10));
+    path.push_back((int)(code_type % 10));
 
 
     // 使用栈计算proof中子树的根哈希
